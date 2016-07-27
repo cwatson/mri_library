@@ -14,6 +14,7 @@ usage()
 
     OPTIONS:
         -h          Show this message
+        -a          Atlas (either 'dkt.scgm' or 'destrieux.scgm')
         -p          Project name (e.g. Fontan)
         -g          Subject group
         -s          Subject name/ID
@@ -43,6 +44,17 @@ do
         -h)
             usage
             exit 1
+            ;;
+
+        -a)
+            if [ -n "$2" ]
+            then
+                ATLAS=$2
+                shift
+            else
+                echo -e "\nOption \"$1\" requires an argument\n"
+                exit 2
+            fi
             ;;
 
         -g)
@@ -117,12 +129,8 @@ fi
 #-------------------------------------------------------------------------------
 if [[ ${proj} == 'CCFA' ]]
 then
+    scanner=''
     BASE_DIR='/raid2/fmri8/ibd/ccfa'
-    DTI_DIR=${BASE_DIR}/dti/${group}/${subj}
-    APARC_DIR=${DTI_DIR}/struct/dkt.scgm
-    SUBJECTS_DIR=${BASE_DIR}/volumetric/freesurfer/${group}
-    MRI_DIR=${SUBJECTS_DIR}/${subj}/mri
-    SEED_DIR=${BASE_DIR}/dti/${group}/${subj}.probtrackX2/seeds
 else
     if [[ -z ${scanner} ]]
     then
@@ -130,43 +138,53 @@ else
         exit 3
     fi
     BASE_DIR='/raid2/fmri8/fontan'
-    DTI_DIR=${BASE_DIR}/dti/${scanner}/${group}/${subj}
-    APARC_DIR=${DTI_DIR}/struct/dkt.scgm
-    SUBJECTS_DIR=${BASE_DIR}/volumetric/freesurfer/${scanner}/${group}
-    MRI_DIR=${SUBJECTS_DIR}/${subj}/mri
-    SEED_DIR=${BASE_DIR}/dti/${scanner}/${group}/${subj}.probtrackX2/seeds
 fi
+DTI_DIR=${BASE_DIR}/dti/${scanner}/${group}/${subj}
+SUBJECTS_DIR=${BASE_DIR}/volumetric/freesurfer/${scanner}/${group}
+SEED_DIR=${BASE_DIR}/dti/${scanner}/${group}/${subj}.probtrackX2/seeds/${ATLAS}
+APARC_DIR=${DTI_DIR}/struct/
+MRI_DIR=${SUBJECTS_DIR}/${subj}/mri
 
-mkdir -p ${APARC_DIR}
-mkdir -p ${SEED_DIR}
+mkdir -p ${APARC_DIR} ${SEED_DIR}
 
-if [ ! -e "${APARC_DIR}/aparc.DKTatlas40+aseg.nii.gz" ]
+if [[ ${ATLAS} == 'dkt.scgm' ]]
 then
-    if [ ! -e "${MRI_DIR}/aparc.DKTatlas40+aseg.mgz" ]
+    ATLAS_BASE="aparc.DKTatlas40+aseg"
+    ATLAS_IMAGE="${APARC_DIR}/${ATLAS_BASE}.nii.gz"
+    if [ ! -e "${ATLAS_IMAGE}" ]
     then
-        mri_aparc2aseg --s ${subj} --annot aparc.DKTatlas40
-        mri_convert ${MRI_DIR}/aparc.DKTatlas40+aseg.{mgz,nii.gz}
-        mv ${MRI_DIR}/aparc.DKTatlas40+aseg.nii.gz ${APARC_DIR}
-    else
-        if [ ! -e "${MRI_DIR}/aparc.DKTatlas40+aseg.nii.gz" ]
+        if [ ! -e "${MRI_DIR}/${ATLAS_BASE}.mgz" ]
         then
-            mri_convert ${MRI_DIR}/aparc.DKTatlas40+aseg.{mgz,nii.gz}
-            mv ${MRI_DIR}/aparc.DKTatlas40+aseg.nii.gz ${APARC_DIR}
+            mri_aparc2aseg --s ${subj} --annot aparc.DKTatlas40
         fi
+        mri_convert ${MRI_DIR}/${ATLAS_BASE}.{mgz,nii.gz}
+        mv ${MRI_DIR}/${ATLAS_BASE}.nii.gz ${APARC_DIR}
     fi
+elif [[ ${ATLAS} == 'destrieux.scgm' ]]
+then
+    ATLAS_IMAGE="${APARC_DIR}/aparc.a2009s+aseg.nii.gz"
+    if [ ! -e "${ATLAS_IMAGE}" ]
+    then
+        mri_convert ${MRI_DIR}/aparc.a2009s+aseg.{mgz,nii.gz}
+        mv ${MRI_DIR}/aparc.a2009s+aseg.nii.gz ${APARC_DIR}
+    fi
+else
+    echo "Invalid atlas! Choose 'dkt.scgm' or 'destrieux.scgm'"
+    exit 4
 fi
+
 cd ${APARC_DIR}
 if [ ! -e "${APARC_DIR}/norm.nii.gz" ]
 then
     mri_convert ${MRI_DIR}/norm.mgz ${APARC_DIR}/norm.nii.gz
+    bet2 norm struct_brain -m -f 0.35
 fi
 if [ ! -e "${APARC_DIR}/struct2dwi.nii.gz" ]
 then
-    bet2 norm struct_brain -m -f 0.35
     echo -e "\n==========================================================="
     echo -e "Registering 'norm' to DWI space"
     echo -e "==========================================================="
-    flirt -in struct_brain -ref ../../dwi -out struct2dwi
+    flirt -in struct_brain -ref ../dwi -out struct2dwi
 fi
 
 #-------------------------------------------------------------------------------
@@ -174,27 +192,21 @@ fi
 #-------------------------------------------------------------------------------
 if [ ! -e "${SUBJECTS_DIR}/${subj}/dmri/xfms/anatorig2diff.bbr.mat" ]
 then
-    mkdir -p ${SUBJECTS_DIR}/${subj}/dmri/
-    mkdir -p ${SUBJECTS_DIR}/${subj}/dlabel/diff
+    mkdir -p ${SUBJECTS_DIR}/${subj}/{dmri,dlabel/diff}
     FS_DTI_DIR=${SUBJECTS_DIR}/${subj}/dmri
-    ln -s ${DTI_DIR}/dwi_orig.nii.gz ${FS_DTI_DIR}/
+    ln -s ${DTI_DIR}/{dwi_orig.nii.gz,dwi.nii.gz,dwi.ecclog} ${FS_DTI_DIR}/
     ln -s ${FS_DTI_DIR}/dwi_orig.nii.gz ${FS_DTI_DIR}/dwi_orig_flip.nii.gz
-    ln -s ${DTI_DIR}/dwi.nii.gz ${FS_DTI_DIR}/
     ln -s ${FS_DTI_DIR}/dwi.nii.gz ${FS_DTI_DIR}/data.nii.gz
-    ln -s ${DTI_DIR}/dwi.ecclog ${FS_DTI_DIR}/
     ln -s ${SUBJECTS_DIR}/bvecs_transpose ${FS_DTI_DIR}/dwi_orig.mghdti.bvecs
     ln -s ${SUBJECTS_DIR}/bvals_transpose ${FS_DTI_DIR}/dwi_orig.mghdti.bvals
-    ln -s ${DTI_DIR}/bvals ${FS_DTI_DIR}/
-    ln -s ${DTI_DIR}/bvecs ${FS_DTI_DIR}/
-    ln -s ${DTI_DIR}/lowb.nii.gz ${FS_DTI_DIR}/
-    ln -s ${DTI_DIR}/lowb_brain.nii.gz ${FS_DTI_DIR}/
+    ln -s ${DTI_DIR}/{bvals,bvecs,lowb.nii.gz,lowb_brain.nii.gz} ${FS_DTI_DIR}/
     ln -s ${DTI_DIR}/lowb_brain_mask.nii.gz ${SUBJECTS_DIR}/${subj}/dlabel/diff
 
-    ln -s ${DTI_DIR}/dtifit/${subj}_dtifit_FA.nii.gz ${FS_DTI_DIR}/dtifit_FA.nii.gz
-    ln -s ${DTI_DIR}/dtifit/${subj}_dtifit_MD.nii.gz ${FS_DTI_DIR}/dtifit_MD.nii.gz
-    ln -s ${DTI_DIR}/dtifit/${subj}_dtifit_L1.nii.gz ${FS_DTI_DIR}/dtifit_L1.nii.gz
-    ln -s ${DTI_DIR}/dtifit/${subj}_dtifit_L2.nii.gz ${FS_DTI_DIR}/dtifit_L2.nii.gz
-    ln -s ${DTI_DIR}/dtifit/${subj}_dtifit_L3.nii.gz ${FS_DTI_DIR}/dtifit_L3.nii.gz
+    for meas in FA MD L1 L2 L3
+    do
+        ln -s ${DTI_DIR}/dtifit/${subj}_dtifit_${meas}.nii.gz \
+            ${FS_DTI_DIR}/dtifit_${meas}.nii.gz
+    done
 
     # Run the remaining steps of trac-all -prep
     TRACULA_CONFIG=${SUBJECTS_DIR}/dmrirc/dmrirc.${subj}
@@ -221,30 +233,33 @@ then
     trac-all -c ${SUBJECTS_DIR}/dmrirc/dmrirc.${subj} \
         -prep -nocorr -noqa -notensor -noprior
 fi
+#-------------------------------------------------------------------------------
 
 echo -e "\n==========================================================="
 echo -e "Pulling out seed ROI's into individual files"
 echo -e "==========================================================="
+labelfile=/parietal/dnl_library/bin/fsl/${ATLAS}.txt
 count=0
-total=76
-cat /parietal/dnl_library/bin/fsl/dkt_scgm.txt |
+total=$(wc -l ${labelfile} | awk '{print $1}')
+mkdir tmp
+cat ${labelfile} |
 while read line
 do
     count=$(( $count + 1 ))
     printf "\r ROI number: $count/$total"
     roiID=$(echo ${line} | awk '{print $1}' -)
     roiNAME=$(echo ${line} | awk '{print $2}' -)
-    fslmaths aparc.DKTatlas40+aseg.nii.gz -thr ${roiID} -uthr ${roiID} \
-        -bin ${roiNAME}
+    fslmaths ${ATLAS_IMAGE} -thr ${roiID} -uthr ${roiID} \
+        -bin tmp/${roiNAME}
 done
-mv 1*.nii.gz 2*.nii.gz ${SEED_DIR}
+mv tmp/* ${SEED_DIR}
+rmdir tmp
 cd ${SEED_DIR}
 
 echo -e "\n==========================================================="
 echo -e "Transforming ROI's to DWI space"
 echo -e "==========================================================="
 count=0
-total=76
 for ROI in *.nii.gz
 do
     count=$(( $count + 1 ))
@@ -254,6 +269,7 @@ do
         -out ${ROIbase}2dwi \
         -init ${SUBJECTS_DIR}/${subj}/dmri/xfms/anatorig2diff.bbr.mat -applyxfm
     fslmaths ${ROIbase}2dwi -thr 0.25 -bin ${ROIbase}2dwi_bin
+    fslstats ${ROIbase}2dwi_bin -V | awk '{print $1}' >> sizes.txt
 done
 
 ls ${PWD}/*_bin.nii.gz >> seeds.txt
