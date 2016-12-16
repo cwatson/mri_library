@@ -36,9 +36,18 @@ do
             ;;
 
         -a)
-            if [ -n "$2" ]
-            then
-                ATLAS=$2
+            if [[ -n "$2" ]]; then
+                atlas=$2
+                shift
+            else
+                echo -e "\nOption \"$1\" requires an argument\n"
+                exit 1
+            fi
+            ;;
+
+        -s)
+            if [[ -n "$2" ]]; then
+                subj=$2
                 shift
             else
                 echo -e "\nOption \"$1\" requires an argument\n"
@@ -46,25 +55,13 @@ do
             fi
             ;;
 
-        -s)
-            if [ -n "$2" ]
-            then
-                SUBJ=$2
-                shift
-            else
-                echo -e "\nOption \"$1\" requires an argument\n"
-                exit 1
-            fi
-            ;;
-
         -P)
-            if [ -n "$2" ]
-            then
+            if [[ -n "$2" ]]; then
                 nSamples=$2
                 shift
             else
                 echo -e "\nOption \"$1\" requires an argument\n"
-                exit 1
+                exit 3
             fi
             ;;
 
@@ -76,69 +73,40 @@ do
     shift
 done
 
-# Argument checking
-#-------------------------------------------------------------------------------
-if [[ -z ${ATLAS} ]]
-then
-    ATLAS=dk.scgm
+if [[ ! -d "dti" ]] || [[ ! -d "vol" ]]; then
+    echo -e "Must be in base study directory!\n"
+    exit 4
 fi
 
-if [[ -z ${nSamples} ]]
-then
+# Argument checking
+#-------------------------------------------------------------------------------
+if [[ -z ${atlas} ]]; then
+    atlas=dk.scgm
+fi
+
+if [[ -z ${nSamples} ]]; then
     nSamples=5000
 fi
 
 
-SEEDFILE=${SUBJ}/dti2.probtrackX2/seeds/${ATLAS}/seeds_sorted.txt
-#for i in {1..10}
-#do
-#    for j in {1..8}
-#    do
-#        n=$(( $j + 8 * ( $i - 1 ) ))
+seed_file=dti/${subj}/dti2.probtrackX2/seeds/${atlas}/seeds_sorted.txt
 start=$(date +%s)
-for CUR_SEED in $(cat ${SEEDFILE})
-do
-#        CUR_SEED=$(sed "${n}q;d" ${SEEDFILE})
-        sem --bar -j+0 probtrackx2 \
-            -x ${CUR_SEED} \
-            -s ${SUBJ}/dti2.bedpostX/merged \
-            -m ${SUBJ}/dti2.bedpostX/nodif_brain_mask \
-            --omatrix1 \
-            --os2t \
-            --otargetpaths \
-            --s2tastext \
-            -P ${nSamples} \
-            --forcedir \
-            --opd \
-            --dir=${SUBJ}/dti2.probtrackX2/results2/${ATLAS}/$(basename ${CUR_SEED}) \
-            --targetmasks=${SEEDFILE} #&
-#    done
-#    wait
+for cur_seed in $(cat ${seed_file}); do
+    sem --bar -j+0 probtrackx2 \
+        -x ${cur_seed} \
+        -s dti/${subj}/dti2.bedpostX/merged \
+        -m dti/${subj}/dti2.bedpostX/nodif_brain_mask \
+        --omatrix1 \
+        --os2t \
+        --otargetpaths \
+        --s2tastext \
+        -P ${nSamples} \
+        --forcedir \
+        --opd \
+        --dir=dti/${subj}/dti2.probtrackX2/results_alt/${atlas}/$(basename ${cur_seed} .nii.gz) \
+        --targetmasks=${seed_file}
 done
 end=$(date +%s)
 runtime=$((end-start))
-totalsize=$(awk '{sum+=$1} END {print sum}' ${SUBJ}/dti2.probtrackX2/seeds/${ATLAS}/sizes.txt)
-echo "${nSamples},${runtime},${totalsize}" >> runtime.csv
-
-#for i in 11
-#do
-#    for j in {1..2}
-#    do
-#        n=$(( $j + 8 * ( $i - 1 ) ))
-#        CUR_SEED=$(sed "${n}q;d" ${SEEDFILE})
-#        probtrackx2 \
-#            -x ${CUR_SEED} \
-#            -s dti/${SUBJ}/dti2.bedpostX/merged \
-#            -m dti/${SUBJ}/dti2.bedpostX/nodif_brain_mask \
-#            --omatrix1 \
-#            --os2t \
-#            --otargetpaths \
-#            --s2tastext \
-#            -P 1000 \
-#            --forcedir \
-#            --opd \
-#            --dir=dti/${SUBJ}/dti2.probtrackX2/results/dk.scgm/$(basename ${CUR_SEED}) \
-#            --targetmasks=${SEEDFILE} &
-#    done
-#    wait
-#done
+totalsize=$(awk '{sum+=$1} END {print sum}' dti/${subj}/dti2.probtrackX2/seeds/${atlas}/sizes.txt)
+echo "${nSamples},${runtime},${totalsize}" >> ~/runtime.csv
