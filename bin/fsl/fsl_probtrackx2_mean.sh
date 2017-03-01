@@ -49,8 +49,7 @@ do
     esac
 done
 
-if [ $# == 0 ]
-then
+if [ $# == 0 ]; then
     usage
     exit 2
 fi
@@ -61,14 +60,11 @@ if [[ ! -d ${subj} ]]; then
 fi
 
 cd ${subj}/dti2.probtrackX2/results/dk.scgm
-for seed in *
-do
+for seed in [12]*; do
     cd ${seed}
-    for target in target_paths*.nii.gz
-    do
+    for target in target_paths*.nii.gz; do
         fslmaths ${target} -thrp ${thr} targmask
-        if [ $(fslstats targmask -V | awk '{print $1}') -eq 0 ]
-        then
+        if [ $(fslstats targmask -V | awk '{print $1}') -eq 0 ]; then
             echo -n "0 " >> ../W.txt
         else
             echo -n "$(fslstats ../../../../dti2/dti_${measure} -k targmask -M) " >> ../W.txt
