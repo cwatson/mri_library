@@ -53,7 +53,9 @@ if [[ ! -d ${subj} ]]; then
     exit 3
 fi
 
-# Move all of the previous data to a separate directory
+#-------------------------------------------------------------------------------
+# Move all of the previous data to a separate directory; convert DICOMs
+#-------------------------------------------------------------------------------
 cd ${subj}
 if [[ ! -d orig ]]; then
     mkdir orig
@@ -62,19 +64,29 @@ if [[ ! -d orig ]]; then
     mkdir dti2
     ln -s $PWD/orig/dti2/dicom.tar.gz dti2
     cd dti2
+else
+    echo -e "\nThe 'orig' directory has already been created.\nCheck if preprocessing has already been completed."
+    exit 4
 fi
 
 # The 34th volume is the ADC/trace. That's why 2 nifti images are created
 tar zxf dicom.tar.gz
-#scale_factor=$(dcmdump +P "2005,100e" DICOM/IM_0001 | awk '{print $3}')
-#dcm2niix -f dwi_orig ./*.PAR
-dcm2niix -z y -f dwi_orig -o . DICOM/
+if [[ $HOSTNAME =~ .*stampede.* ]]; then
+    ${WORK}/apps/mricrogl_lx/dcm2niix -z i -f dwi_orig -o . DICOM/
+    eddycommand=eddy_cuda
+else
+    dcm2niix -z y -f dwi_orig -o . DICOM/
+    eddycommand=eddy_openmp
+fi
+rm -r DICOM
 mv dwi_orig.bvec bvecs.norot
 mv dwi_orig.bval bvals
-#fslmaths dwi_orig -mul ${scale_factor} dwi_orig_scaled
 
+#-------------------------------------------------------------------------------
+# Create files needed to run eddy; then run it
+#-------------------------------------------------------------------------------
 fslroi dwi_orig nodif 0 1
-bet2 nodif{,_brain} -m
+bet nodif{,_brain} -m -R
 printf "0 1 0 0.0646" > acqparams.txt
 
 nvols=$(fslnvols dwi_orig)
@@ -84,7 +96,7 @@ echo $indx > index.txt
 
 mkdir eddy
 echo -e '\n Running "eddy"!'
-eddy_openmp \
+${eddycommand} \
     --imain=dwi_orig \
     --mask=nodif_brain_mask \
     --index=index.txt \
@@ -96,6 +108,9 @@ eddy_openmp \
 ln -s $PWD/eddy/dwi_eddy.nii.gz $PWD/data.nii.gz
 ln -s $PWD/eddy/dwi_eddy.eddy_rotated_bvecs $PWD/bvecs
 
+#-------------------------------------------------------------------------------
+# Run dtifit
+#-------------------------------------------------------------------------------
 mkdir dtifit
 dtifit -k data -m nodif_brain_mask -o dtifit/dtifit \
     -r bvecs -b bvals --sse --save_tensor
