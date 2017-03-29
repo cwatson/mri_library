@@ -6,8 +6,7 @@
 #_______________________________________________________________________________
 # by Chris Watson, 2017-02-28
 
-usage()
-{
+usage() {
     cat << !
 
     Preprocess DTI data using FSL's tools, including the new "eddy" tool.
@@ -15,43 +14,27 @@ usage()
     USAGE: $(basename $0) [options]
 
     OPTIONS:
-        -h      Show this message
-        -s      Subject ID
+        -h  Show this message
+        -s  Subject ID
+        -f  Intensity threshold for "bet" (default: 0.5)
 
     EXAMPLE:
-        $(basename $0) -s SP7104_time1
+        $(basename $0) -s SP7104_time1 -f 0.4
 
 !
 }
 
-while getopts ":hm:s:t:" OPTION
-do
+while getopts ":hs:f:" OPTION; do
     case $OPTION in
-        h)
-            usage
-            exit 1
-            ;;
-
-        s)
-            subj="$OPTARG"
-            ;;
-
-        *)
-            usage
-            exit 99
-            ;;
+        s) subj="$OPTARG" ;;
+        f) thresh="$OPTARG" ;;
+        *) usage && exit ;;
     esac
 done
 
-if [ $# == 0 ]; then
-    usage
-    exit 2
-fi
-
-if [[ ! -d ${subj} ]]; then
-    echo -e "Subject ${subj} is not valid!\n"
-    exit 3
-fi
+[[ $# == 0 ]] && usage && exit
+[[ ! -d ${subj} ]] && echo -e "Subject ${subj} is not valid!\n" && exit 3
+[[ -z ${thresh} ]] && thresh=0.5
 
 #-------------------------------------------------------------------------------
 # Move all of the previous data to a separate directory; convert DICOMs
@@ -59,19 +42,20 @@ fi
 cd ${subj}
 if [[ ! -d orig ]]; then
     mkdir orig
-    mv dti2* struct orig
+    mv dti2* orig/
 
     mkdir dti2
     ln -s $PWD/orig/dti2/dicom.tar.gz dti2
     cd dti2
 else
-    echo -e "\nThe 'orig' directory has already been created.\nCheck if preprocessing has already been completed."
+    echo -e "\nThe 'orig' directory has already been created."
+    echo -e "Check if preprocessing has already been completed."
     exit 4
 fi
 
 # The 34th volume is the ADC/trace. That's why 2 nifti images are created
 tar zxf dicom.tar.gz
-if [[ $HOSTNAME =~ .*stampede.* ]]; then
+if [[ $(hostname) =~ .*stampede.* ]]; then
     ${WORK}/apps/mricrogl_lx/dcm2niix -z i -f dwi_orig -o . DICOM/
     eddycommand=eddy_cuda
 else
@@ -86,7 +70,7 @@ mv dwi_orig.bval bvals
 # Create files needed to run eddy; then run it
 #-------------------------------------------------------------------------------
 fslroi dwi_orig nodif 0 1
-bet nodif{,_brain} -m -R
+bet nodif{,_brain} -m -R -f ${thresh}
 printf "0 1 0 0.0646" > acqparams.txt
 
 nvols=$(fslnvols dwi_orig)

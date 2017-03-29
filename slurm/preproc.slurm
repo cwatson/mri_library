@@ -7,4 +7,4 @@
 #SBATCH --mail-user=Christopher.G.Watson@uth.tmc.edu
 module load cuda/6.5
 
-${HOME}/code/bin/fsl_dti_preproc.sh -s ${1}
+${HOME}/code/bin/fsl_dti_preproc.sh -s ${1} -f ${2}

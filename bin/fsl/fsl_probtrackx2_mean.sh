@@ -4,8 +4,7 @@
 #_______________________________________________________________________________
 # Chris Watson, 2016-10-20
 
-usage()
-{
+usage() {
     cat << !
 
     usage: $(basename $0) [options]
@@ -20,40 +19,19 @@ usage()
         $(basename $0) -m FA -s SP7104_time1 -t 0.9
 
 !
+exit
 }
 
-while getopts ":hm:s:t:" OPTION
-do
+while getopts ":hm:s:t:" OPTION; do
     case $OPTION in
-        h)
-            usage
-            exit 1
-            ;;
-
-        m)
-            measure="$OPTARG"
-            ;;
-
-        s)
-            subj="$OPTARG"
-            ;;
-
-        t)
-            thr="$OPTARG"
-            ;;
-
-        *)
-            usage
-            exit 99
-            ;;
+        m) measure="$OPTARG" ;;
+        s) subj="$OPTARG" ;;
+        t) thr="$OPTARG" ;;
+        *) usage ;;
     esac
 done
 
-if [ $# == 0 ]; then
-    usage
-    exit 2
-fi
-
+[[ $# == 0 ]] && usage
 if [[ ! -d ${subj} ]]; then
     echo -e "Subject ${subj} is not valid!\n"
     exit 3

@@ -2,10 +2,10 @@
 #
 # Run a different instance of probtrackx2 for all seeds
 #_______________________________________________________________________________
+# updated 2017-03-28
 # Chris Watson, 2016-11-02
 
-usage()
-{
+usage() {
     cat << !
 
     usage: $(basename $0) [options]
@@ -19,94 +19,52 @@ usage()
         -P          Number of samples (default: 5000)
 
     EXAMPLE:
-        $(basename $0)
-            -a dk.scgm
-            -s SP7104_time1
-            -P 1000
+        $(basename $0) -a dk.scgm -s SP7104_time1 -P 1000
 
 !
 }
 
-while :
-do
-    case $1 in
-        -h)
-            usage
-            exit 99
-            ;;
-
-        -a)
-            if [[ -n "$2" ]]; then
-                atlas=$2
-                shift
-            else
-                echo -e "\nOption \"$1\" requires an argument\n"
-                exit 1
-            fi
-            ;;
-
-        -s)
-            if [[ -n "$2" ]]; then
-                subj=$2
-                shift
-            else
-                echo -e "\nOption \"$1\" requires an argument\n"
-                exit 2
-            fi
-            ;;
-
-        -P)
-            if [[ -n "$2" ]]; then
-                nSamples=$2
-                shift
-            else
-                echo -e "\nOption \"$1\" requires an argument\n"
-                exit 3
-            fi
-            ;;
-
-        *)
-            break
-            ;;
-    esac
-
-    shift
-done
-
-if [[ ! -d "dti" ]] || [[ ! -d "vol" ]]; then
-    echo -e "Must be in base study directory!\n"
-    exit 4
-fi
-
 # Argument checking
 #-------------------------------------------------------------------------------
-if [[ -z ${atlas} ]]; then
-    atlas=dk.scgm
-fi
+[[ $# == 0 ]] && usage && exit
 
-if [[ -z ${nSamples} ]]; then
-    nSamples=5000
-fi
+while getopts ":ha:s:P:" OPTION; do
+    case $OPTION in
+        a) atlas="$OPTARG" ;;
+        s) subj="$OPTARG" ;;
+        P) nSamples="$OPTARG" ;;
+        *) usage && exit ;;
+    esac
+done
 
+[[ -z ${nSamples} ]] && nSamples=5000
+[[ -z ${atlas} ]] && atlas=dk.scgm
+bpx_dir=${subj}/dti2.bedpostX
+seed_dir=${subj}.probtrackX2/seeds/${atlas}
+seed_file=${seed_dir}/seeds_sorted.txt
+res_dir=${subj}/dti2.probtrackX2/results_alt/${atlas}
 
-seed_file=dti/${subj}/dti2.probtrackX2/seeds/${atlas}/seeds_sorted.txt
+[[ ! -e "timing_ptx.csv" ]] && touch timing_ptx.csv
 start=$(date +%s)
-for cur_seed in $(cat ${seed_file}); do
+
+while read line; do
     sem --bar -j+0 probtrackx2 \
-        -x ${cur_seed} \
-        -s dti/${subj}/dti2.bedpostX/merged \
-        -m dti/${subj}/dti2.bedpostX/nodif_brain_mask \
+        -x ${line} \
+        -s ${bpx_dir}/merged \
+        -m ${bpx_dir}/nodif_brain_mask \
+        -P ${nSamples} \
         --omatrix1 \
         --os2t \
         --otargetpaths \
         --s2tastext \
-        -P ${nSamples} \
         --forcedir \
         --opd \
-        --dir=dti/${subj}/dti2.probtrackX2/results_alt/${atlas}/$(basename ${cur_seed} .nii.gz) \
+        --avoid=${seed_dir}/ventricles.nii.gz \
+        --dir=${res_dir}/$(basename ${line} .nii.gz) \
         --targetmasks=${seed_file}
-done
+done < ${seed_file}
+
 end=$(date +%s)
 runtime=$((end-start))
-totalsize=$(awk '{sum+=$1} END {print sum}' dti/${subj}/dti2.probtrackX2/seeds/${atlas}/sizes.txt)
-echo "${nSamples},${runtime},${totalsize}" >> ~/runtime.csv
+totalsize=$(awk '{sum+=$1} END {print sum}' ${seed_dir}/sizes.txt)
+echo "${nSamples},${runtime},${totalsize}" >> ~/timing_ptx.csv

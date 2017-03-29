@@ -1,26 +1,27 @@
 #!/bin/bash
 #
-# To use, build the launcher executable and your
-# serial application(s) and place them in your WORKDIR
-# directory.  Then, edit the CONTROL_FILE to specify
-# each executable per process.
-#-------------------------------------------------------
-#SBATCH -J weightedMat      # Job name
+#SBATCH -J ptx_run          # Job name
 #SBATCH -N 1                # Total number of nodes (16 cores/node)
 #SBATCH -n 16               # Total number of tasks
 #SBATCH -p normal           # Queue name
-#SBATCH -o weightedMat      # Name of stdout output file (%j expands to jobid)
-#SBATCH -t 06:00:00         # Run time (hh:mm:ss)
+#SBATCH -o ../logs/ptx_run        # Name of stdout output file (%j expands to jobid)
+#SBATCH -t 04:00:00         # Run time (hh:mm:ss)
 #SBATCH --mail-type=end
 #SBATCH --mail-user=Christopher.G.Watson@uth.tmc.edu
 #------------------------------------------------------
-for subj in SP*; do
-    echo "${HOME}/code/bin/fsl_probtrackx2_mean.sh -m FA -t 0.9 -s ${subj}" >> paramlist.wt
-done
+base_dir=${WORK}/stress_study/dti
+bedpost_dir=${base_dir}/${1}/dti2.bedpostX
+seed_dir=${base_dir}/${1}/dti2.probtrackX2/seeds/dk.scgm
+seed_file=${seed_dir}/seeds_sorted.txt
+
+[[ -f "../logs/ptx_run_${1}.paramlist" ]] && rm ../logs/ptx_run_${1}.paramlist
+while read line; do
+    echo "probtrackx2 -x ${line} -s ${bedpost_dir}/merged -m ${bedpost_dir}/nodif_brain_mask --omatrix1 --os2t --otargetpaths --s2tastext -P 5000 --forcedir --opd --pd --dir=${base_dir}/${1}/dti2.probtrackX2/results/dk.scgm/$(basename ${line} .nii.gz) --targetmasks=${seed_file} --avoid=${seed_dir}/ventricles.nii.gz" >> ../logs/ptx_run_${1}.paramlist
+done < ${seed_file}
 
 module load launcher
 export EXECUTABLE=$TACC_LAUNCHER_DIR/init_launcher
-export CONTROL_FILE=paramlist.wt
+export CONTROL_FILE=../logs/ptx_run_${1}.paramlist
 export WORKDIR=.
 
 # Variable description:

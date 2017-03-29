@@ -5,22 +5,23 @@
 # directory.  Then, edit the CONTROL_FILE to specify
 # each executable per process.
 #-------------------------------------------------------
-#SBATCH -J weightedMat      # Job name
+#SBATCH -J ptx_setup        # Job name
 #SBATCH -N 1                # Total number of nodes (16 cores/node)
 #SBATCH -n 16               # Total number of tasks
 #SBATCH -p normal           # Queue name
-#SBATCH -o weightedMat      # Name of stdout output file (%j expands to jobid)
-#SBATCH -t 06:00:00         # Run time (hh:mm:ss)
+#SBATCH -o ptx_setup        # Name of stdout output file (%j expands to jobid)
+#SBATCH -t 01:30:00         # Run time (hh:mm:ss)
 #SBATCH --mail-type=end
 #SBATCH --mail-user=Christopher.G.Watson@uth.tmc.edu
 #------------------------------------------------------
 for subj in SP*; do
-    echo "${HOME}/code/bin/fsl_probtrackx2_mean.sh -m FA -t 0.9 -s ${subj}" >> paramlist.wt
+    echo "${HOME}/code/bin/fsl_probtrackx2_setup_CLI.sh -a dk.scgm -s ${subj}" >> ptx_setup.paramlist
 done
 
+module load freesurfer
 module load launcher
 export EXECUTABLE=$TACC_LAUNCHER_DIR/init_launcher
-export CONTROL_FILE=paramlist.wt
+export CONTROL_FILE=ptx_setup.paramlist
 export WORKDIR=.
 
 # Variable description:
