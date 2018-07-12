@@ -7,6 +7,8 @@
 #'
 #' @param results.dir Character string of the top-level results directory
 #' @param P Integer; the number of samples (default: 5000)
+#' @param seeds.sorted Character string specifying the file with the seed
+#'   regions sorted from largest to smallest
 #'
 #' @author Christopher G. Watson, \email{cgwatson@@bu.edu}
 #' @examples
@@ -14,7 +16,7 @@
 #' fsl_fdt_matrix('~/dti/SP7104/dti2.probtrackX2/results_alt/dk.scgm/')
 #' }
 
-fsl_fdt_matrix <- function(results.dir, P=5000) {
+fsl_fdt_matrix <- function(results.dir, P=5000, seeds.sorted) {
 
   f.s2t <- list.files(list.dirs(results.dir, recursive=T),
                       'matrix_seeds_to_all_targets', full.names=T)
@@ -28,8 +30,10 @@ fsl_fdt_matrix <- function(results.dir, P=5000) {
   }
 
   # The seeds are not in order, so need to re-order the rows
-  seed.order <- apply(M, 1, which.max)
-  M2 <- M[, seed.order]
+  seeds_sorted <- read.table(seeds.sorted)
+  seed.order <- as.numeric(seeds_sorted$V1)  # Because it's a factor variable
+  M2 <- matrix(0, kNumROI, kNumROI)
+  M2[, seed.order] <- M
   write.table(M2, col.names=F, row.names=F,
               file=paste0(results.dir, 'fdt_network_matrix'))
 }
