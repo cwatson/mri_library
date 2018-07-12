@@ -9,19 +9,20 @@
 #SBATCH -N 1                # Total number of nodes (16 cores/node)
 #SBATCH -n 16               # Total number of tasks
 #SBATCH -p normal           # Queue name
-#SBATCH -o weightedMat      # Name of stdout output file (%j expands to jobid)
-#SBATCH -t 06:00:00         # Run time (hh:mm:ss)
+#SBATCH -o ../logs/weightedMat_FA_0.9   # Name of stdout output file (%j expands to jobid)
+#SBATCH -t 04:30:00         # Run time (hh:mm:ss)
 #SBATCH --mail-type=end
 #SBATCH --mail-user=Christopher.G.Watson@uth.tmc.edu
 #------------------------------------------------------
-for subj in SP*; do
-    echo "${HOME}/code/bin/fsl_probtrackx2_mean.sh -m FA -t 0.9 -s ${subj}" >> paramlist.wt
-done
-
 module load launcher
 export EXECUTABLE=$TACC_LAUNCHER_DIR/init_launcher
-export CONTROL_FILE=paramlist.wt
+thresh=0.9
+export CONTROL_FILE=../logs/paramlist_FA_${thresh}.wt
 export WORKDIR=.
+
+for subj in SP*; do
+    echo "${HOME}/code/bin/fsl_probtrackx2_mean.sh -p TBI -m FA -t ${thresh} -s ${subj}" >> ${CONTROL_FILE}
+done
 
 # Variable description:
 #

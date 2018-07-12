@@ -11,19 +11,22 @@ usage() {
 
     OPTIONS:
         -h      Show this message
+        -p      Project (CCFA, TBI)
         -m      Measure (FA, MD, L1, RD)
         -s      Subject ID
-        -t      Threshold (proportion of max. value)
+        -t      Threshold (proportion of max. value; default: 0.9)
 
     EXAMPLE:
-        $(basename $0) -m FA -s SP7104_time1 -t 0.9
+        $(basename $0) -p TBI -m FA -s SP7104_time1 -t 0.9
+        $(basename $0) -p ccfa -m FA -s cd001 -t 0.9
 
 !
 exit
 }
 
-while getopts ":hm:s:t:" OPTION; do
+while getopts ":hp:m:s:t:" OPTION; do
     case $OPTION in
+        p) proj="$OPTARG" ;;
         m) measure="$OPTARG" ;;
         s) subj="$OPTARG" ;;
         t) thr="$OPTARG" ;;
@@ -32,12 +35,20 @@ while getopts ":hm:s:t:" OPTION; do
 done
 
 [[ $# == 0 ]] && usage
-if [[ ! -d ${subj} ]]; then
-    echo -e "Subject ${subj} is not valid!\n"
-    exit 3
-fi
+[[ ! -d ${subj} ]] && echo -e "Subject ${subj} is not valid!\n" && exit 3
+[[ -z ${thr} ]] && thr=0.9
+case ${proj} in
+    tbi|TBI)
+        cd ${subj}/dti2.probtrackX2/results/dk.scgm
+        measure_im=../../../../dti2/dtifit/dtifit_${measure}
+        ;;
+    ccfa|CCFA)
+        cd ${subj}.probtrackX2/results/dkt.scgm
+        measure_im=../../../../${subj}/dtifit/${subj}_dtifit_${measure}
+        ;;
+    *) echo "Invalid project!\n" && usage ;;
+esac
 
-cd ${subj}/dti2.probtrackX2/results/dk.scgm
 for seed in [12]*; do
     cd ${seed}
     for target in target_paths*.nii.gz; do
@@ -45,7 +56,7 @@ for seed in [12]*; do
         if [ $(fslstats targmask -V | awk '{print $1}') -eq 0 ]; then
             echo -n "0 " >> ../W.txt
         else
-            echo -n "$(fslstats ../../../../dti2/dti_${measure} -k targmask -M) " >> ../W.txt
+            echo -n "$(fslstats ${measure_im} -k targmask -M) " >> ../W.txt
         fi
     done
     cd -

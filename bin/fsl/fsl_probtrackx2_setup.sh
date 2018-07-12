@@ -66,9 +66,6 @@ if [[ ${proj} == 'TBI' ]]; then
     base_dir=${WORK}/stress_study
     dti_dir=${base_dir}/dti/${subj}/dti2
     export SUBJECTS_DIR=${base_dir}/vol
-    [[ ! -d ${dti_dir} ]] && echo "Subject/group name invalid!" && exit 4
-    ln -s ${dti_dir}/{nodif.nii.gz,lowb.nii.gz}
-    ln -s ${dti_dir}/{nodif_brain_mask.nii.gz,lowb_brain_mask.nii.gz}
 else
     if [[ ${proj} == 'CCFA' ]]; then
         scanner=''
@@ -79,9 +76,12 @@ else
         echo "Project name invalid!" && exit 5
     fi
     dti_dir=${base_dir}/dti/${scanner}/${group}/${subj}
-    [[ ! -d ${dti_dir} ]] && echo "Subject/group/scanner invalid!" && exit 4
     export SUBJECTS_DIR=${base_dir}/volumetric/freesurfer/${scanner}/${group}
 fi
+
+[[ ! -d ${dti_dir} ]] && echo "Subject/group/scanner invalid!" && exit 4
+ln -s ${dti_dir}/{nodif.nii.gz,lowb.nii.gz}
+ln -s ${dti_dir}/{nodif_brain_mask.nii.gz,lowb_brain_mask.nii.gz}
 
 if [[ ${rerun} -eq 1 ]]; then
     mkdir ${SUBJECTS_DIR}/${subj}/dti_old
