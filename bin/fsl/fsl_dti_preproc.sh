@@ -40,8 +40,8 @@ rerun=0
 while true; do
     case "$1" in
         -h|--help)          usage && exit ;;
-        -s|--subject)       subj="$OPTARG" ;;
-        -t|--threshold)     thresh="$OPTARG" ;;
+        -s|--subject)       subj="$2"; shift ;;
+        -t|--threshold)     thresh="$2"; shift ;;
         --rerun)            rerun=1; shift ;;
         * )                 break ;;
     esac
