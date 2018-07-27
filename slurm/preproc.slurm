@@ -9,4 +9,4 @@
 #module load cuda/6.5
 export OMP_NUM_THREADS=33
 
-${HOME}/code/dnl_library/bin/fsl/fsl_dti_preproc.sh -s ${1} -t ${2}
+${HOME}/code/dnl_library/bin/fsl/fsl_dti_preproc.sh "$@"
