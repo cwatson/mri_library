@@ -65,7 +65,7 @@ if [[ ${rerun} -eq 1 ]];
         exit 3
     fi
 else
-    mkdir dti2
+    mkdir -p dti2
 fi
 
 # The 34th volume is the ADC/trace. That's why 2 nifti images are created
@@ -94,7 +94,7 @@ indx=""
 for ((i=1; i<=${nvols}; i+=1)); do indx="$indx 1"; done
 echo $indx > index.txt
 
-mkdir eddy
+mkdir -p eddy
 echo -e '\n Running "eddy"!'
 ${eddycommand} \
     --imain=dwi_orig \
@@ -111,7 +111,7 @@ ln -sr eddy/dwi_eddy.eddy_rotated_bvecs bvecs
 #-------------------------------------------------------------------------------
 # Run dtifit
 #-------------------------------------------------------------------------------
-mkdir dtifit
+mkdir -p dtifit
 dtifit -k data -m nodif_brain_mask -o dtifit/dtifit \
     -r bvecs -b bvals --sse --save_tensor
 fslmaths dtifit/dtifit_L2 \
