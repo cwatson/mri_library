@@ -51,7 +51,7 @@ done
 [[ ! -d ${subj} ]] && echo -e "Subject ${subj} is not valid!\n" && exit 2
 
 cd ${subj}
-if [[ ${rerun} -eq 1 ]];
+if [[ ${rerun} -eq 1 ]]; then
     # Move previous data to a separate directory
     #-------------------------------------------------------
     if [[ ! -d orig ]]; then
