@@ -14,50 +14,66 @@ usage() {
     USAGE: $(basename $0) [options]
 
     OPTIONS:
-        -h  Show this message
-        -s  Subject ID
-        -f  Intensity threshold for "bet" (default: 0.5)
+        -h, --help                  Show this message
+        -s, --subject [SUBJECT]     Subject ID
+        -t, --threshold [THRESH]    Intensity threshold for "bet" (default: 0.5)
+        --rerun                     Include if you are re-running; will move old
+                                    data to "orig" directory
 
     EXAMPLE:
-        $(basename $0) -s SP7104_time1 -f 0.4
+        $(basename $0) -s SP7104_time1 -t 0.4
+        $(basename $0) -s SP7180_time1 --rerun
 
 !
 }
 
-while getopts ":hs:f:" OPTION; do
-    case $OPTION in
-        s) subj="$OPTARG" ;;
-        f) thresh="$OPTARG" ;;
-        *) usage && exit ;;
+# Argument checking
+#-------------------------------------------------------------------------------
+[[ $# == 0 ]] && usage && exit
+
+TEMP=$(getopt -o hs:t: --long help,subject,threshold,rerun -- "$@")
+[[ $? -ne 0 ]] && usage && exit 1
+eval set -- "${TEMP}"
+
+thresh=0.5
+rerun=0
+while true; do
+    case "$1" in
+        -h|--help)          usage && exit ;;
+        -s|--subject)       subj="$OPTARG" ;;
+        -t|--threshold)     thresh="$OPTARG" ;;
+        --rerun)            rerun=1; shift ;;
+        * )                 break ;;
     esac
+    shift
 done
 
-[[ $# == 0 ]] && usage && exit
-[[ ! -d ${subj} ]] && echo -e "Subject ${subj} is not valid!\n" && exit 3
-[[ -z ${thresh} ]] && thresh=0.5
+[[ ! -d ${subj} ]] && echo -e "Subject ${subj} is not valid!\n" && exit 2
 
-#-------------------------------------------------------------------------------
-# Move all of the previous data to a separate directory; convert DICOMs
-#-------------------------------------------------------------------------------
 cd ${subj}
-if [[ ! -d orig ]]; then
-    mkdir orig
-    mv dti2* orig/
-
-    mkdir dti2
-    ln -s $PWD/orig/dti2/dicom.tar.gz dti2
-    cd dti2
+if [[ ${rerun} -eq 1 ]];
+    # Move previous data to a separate directory
+    #-------------------------------------------------------
+    if [[ ! -d orig ]]; then
+        mkdir orig
+        mv dti2* orig/
+        mkdir dti2
+        ln -sr orig/dti2/dicom.tar.gz dti2/
+    else
+        echo -e "\nThe 'orig' directory has already been created."
+        echo -e "Check if preprocessing has already been completed."
+        exit 3
+    fi
 else
-    echo -e "\nThe 'orig' directory has already been created."
-    echo -e "Check if preprocessing has already been completed."
-    exit 4
+    mkdir dti2
 fi
 
 # The 34th volume is the ADC/trace. That's why 2 nifti images are created
+cd dti2
 tar zxf dicom.tar.gz
 if [[ $(hostname) =~ .*stampede.* ]]; then
     ${WORK}/apps/mricrogl_lx/dcm2niix -z i -f dwi_orig -o . DICOM/
-    eddycommand=eddy_cuda
+    eddycommand=eddy_openmp
 else
     dcm2niix -z y -f dwi_orig -o . DICOM/
     eddycommand=eddy_openmp
@@ -89,8 +105,8 @@ ${eddycommand} \
     --bvals=bvals \
     --repol \
     --out=eddy/dwi_eddy
-ln -s $PWD/eddy/dwi_eddy.nii.gz $PWD/data.nii.gz
-ln -s $PWD/eddy/dwi_eddy.eddy_rotated_bvecs $PWD/bvecs
+ln -sr eddy/dwi_eddy.nii.gz data.nii.gz
+ln -sr eddy/dwi_eddy.eddy_rotated_bvecs bvecs
 
 #-------------------------------------------------------------------------------
 # Run dtifit
