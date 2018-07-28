@@ -2,7 +2,7 @@
 #SBATCH -N 1                # Total number of nodes (16 cores/node)
 #SBATCH -n 33               # Total number of tasks
 #SBATCH -p skx-normal       # Queue name
-#SBATCH -t 00:15:00         # Run time (hh:mm:ss)
+#SBATCH -t 00:10:00         # Run time (hh:mm:ss)
 #SBATCH --mail-type=end
 #SBATCH --mail-user=Christopher.G.Watson@uth.tmc.edu
 
