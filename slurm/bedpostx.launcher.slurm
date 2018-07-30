@@ -52,9 +52,7 @@ mkdir -p ${subjdir}.bedpostX/{diff_slices,logs/monitor,xfms}
 #-------------------------------------------------------------------------------
 echo Queuing preprocessing stages
 export LC_ALL=C
-cp ${subjdir}/bvecs ${subjdir}/bvals ${subjdir}.bedpostX
-${FSLDIR}/bin/imcp ${subjdir}/nodif_brain_mask ${subjdir}.bedpostX
-${FSLDIR}/bin/imcp ${subjdir}/nodif_brain ${subjdir}.bedpostX
+cp ${subjdir}/{bvecs,bvals,nodif_brain.nii.gz,nodif_brain_mask.nii.gz} ${subjdir}.bedpostX
 ${FSLDIR}/bin/fslslice ${subjdir}/data
 ${FSLDIR}/bin/fslslice ${subjdir}/nodif_brain_mask
 
