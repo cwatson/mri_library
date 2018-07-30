@@ -75,11 +75,11 @@ if [ ! -f $EXECUTABLE ]; then
     exit
 fi
 
-if [ ! -f $WORKDIR/$CONTROL_FILE ]; then
-    echo "Error: unable to find input control file $CONTROL_FILE."
-    echo "Job not submitted."
-    exit
-fi
+#if [ ! -f $WORKDIR/$CONTROL_FILE ]; then
+#    echo "Error: unable to find input control file $CONTROL_FILE."
+#    echo "Job not submitted."
+#    exit
+#fi
 
 #----------------
 # Job Submission
