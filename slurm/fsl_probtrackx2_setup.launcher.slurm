@@ -1,10 +1,5 @@
 #!/bin/bash
 #
-# To use, build the launcher executable and your
-# serial application(s) and place them in your WORKDIR
-# directory.  Then, edit the CONTROL_FILE to specify
-# each executable per process.
-#-------------------------------------------------------
 #SBATCH -J ptx_setup        # Job name
 #SBATCH -N 1                # Total number of nodes (16 cores/node)
 #SBATCH -n 16               # Total number of tasks
@@ -14,24 +9,15 @@
 #SBATCH --mail-type=end
 #SBATCH --mail-user=Christopher.G.Watson@uth.tmc.edu
 #------------------------------------------------------
-for subj in SP*; do
-    echo "${HOME}/code/bin/fsl_probtrackx2_setup_CLI.sh -a dk.scgm -s ${subj}" >> ptx_setup.paramlist
-done
-
 module load freesurfer
 module load launcher
 export EXECUTABLE=$TACC_LAUNCHER_DIR/init_launcher
-export CONTROL_FILE=ptx_setup.paramlist
+export CONTROL_FILE=${WORK}/stress_study/logs/ptx_setup.paramlist
 export WORKDIR=.
 
-# Variable description:
-#
-#  EXECUTABLE     = full path to the job launcher executable
-#  CONTROL_FILE   = text input file which specifies
-#                   executable for each process
-#                   (should be located in WORKDIR)
-#  WORKDIR        = location of working directory
-#--------------------------------------------------------
+for subj in "$@"; do
+    echo "${HOME}/code/bin/fsl_probtrackx2_setup_CLI.sh -p TBI -a dk.scgm -s ${subj}" >> ${CONTROL_FILE}
+done
 #--------------------------------------------------------
 
 #----------------
