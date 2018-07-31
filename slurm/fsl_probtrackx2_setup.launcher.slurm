@@ -3,7 +3,7 @@
 #SBATCH -J ptx_setup        # Job name
 #SBATCH -N 1                # Total number of nodes (16 cores/node)
 #SBATCH -n 16               # Total number of tasks
-#SBATCH -p normal           # Queue name
+#SBATCH -p skx-normal           # Queue name
 #SBATCH -o ptx_setup        # Name of stdout output file (%j expands to jobid)
 #SBATCH -t 01:30:00         # Run time (hh:mm:ss)
 #SBATCH --mail-type=end
@@ -11,35 +11,18 @@
 #------------------------------------------------------
 module load freesurfer
 module load launcher
-export EXECUTABLE=$TACC_LAUNCHER_DIR/init_launcher
-export CONTROL_FILE=${WORK}/stress_study/logs/ptx_setup.paramlist
-export WORKDIR=.
+export LAUNCHER_JOB_FILE=${WORK}/stress_study/logs/ptx_setup.paramlist
+export LAUNCHER_WORKDIR=${PWD}
 
 for subj in "$@"; do
-    echo "${HOME}/code/bin/fsl_probtrackx2_setup_CLI.sh -p TBI -a dk.scgm -s ${subj}" >> ${CONTROL_FILE}
+    echo "${HOME}/code/bin/fsl_probtrackx2_setup_CLI.sh -p TBI -a dk.scgm -s ${subj}" >> ${LAUNCHER_JOB_FILE}
 done
-#--------------------------------------------------------
-
-#----------------
-# Error Checking
-#----------------
-if [ ! -f $EXECUTABLE ]; then
-    echo "Error: unable to find launcher executable $EXECUTABLE."
-    echo "Job not submitted."
-    exit
-fi
-
-if [ ! -f $WORKDIR/$CONTROL_FILE ]; then
-    echo "Error: unable to find input control file $CONTROL_FILE."
-    echo "Job not submitted."
-    exit
-fi
 
 #----------------
 # Job Submission
 #----------------
-cd $WORKDIR/
-echo " WORKING DIR:   $WORKDIR/"
-$TACC_LAUNCHER_DIR/paramrun $EXECUTABLE $CONTROL_FILE
+cd $LAUNCHER_WORKDIR/
+echo " WORKING DIR:   $LAUNCHER_WORKDIR/"
+$TACC_LAUNCHER_DIR/paramrun
 
 echo " Parameteric Job Complete"

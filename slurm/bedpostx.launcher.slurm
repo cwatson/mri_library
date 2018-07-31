@@ -1,16 +1,15 @@
 #!/bin/bash
 #
-#SBATCH -N 1                # Total number of nodes (16 cores/node)
+#SBATCH -N 1                # Total number of nodes (48 cores/node; 2 threads/core)
 #SBATCH -n 65               # Total number of tasks
 #SBATCH -p skx-normal       # Queue name
-#SBATCH -t 03:00:00         # Run time (hh:mm:ss)
+#SBATCH -t 00:30:00         # Run time (hh:mm:ss)
 #SBATCH --mail-type=end
 #SBATCH --mail-user=Christopher.G.Watson@uth.tmc.edu
 #------------------------------------------------------
 module load launcher
-export EXECUTABLE=$TACC_LAUNCHER_DIR/init_launcher
-export CONTROL_FILE=${WORK}/stress_study/logs/bpx_${1}_run.paramlist
-export WORKDIR=.
+export LAUNCHER_JOB_FILE=${WORK}/stress_study/logs/stampede2/bpx/bpx.${1}.paramlist
+export LAUNCHER_WORKDIR=${PWD}
 
 # Parse option arguments
 #-------------------------------------------------------------------------------
@@ -62,30 +61,15 @@ echo Queuing parallel processing stage
 nslices=$(${FSLDIR}/bin/fslval ${subjdir}/data dim3)
 slice=0
 while [ $slice -lt $nslices ]; do
-    echo "${FSLDIR}/bin/bedpostx_single_slice.sh ${subjdir} ${slice} $opts" >> ${CONTROL_FILE}
+    echo "${FSLDIR}/bin/bedpostx_single_slice.sh ${subjdir} ${slice} $opts" >> ${LAUNCHER_JOB_FILE}
     slice=$(($slice + 1))
 done
 
 #----------------
-# Error Checking
-#----------------
-if [ ! -f $EXECUTABLE ]; then
-    echo "Error: unable to find launcher executable $EXECUTABLE."
-    echo "Job not submitted."
-    exit
-fi
-
-#if [ ! -f $WORKDIR/$CONTROL_FILE ]; then
-#    echo "Error: unable to find input control file $CONTROL_FILE."
-#    echo "Job not submitted."
-#    exit
-#fi
-
-#----------------
 # Job Submission
 #----------------
-cd $WORKDIR/
-echo " WORKING DIR:   $WORKDIR/"
-$TACC_LAUNCHER_DIR/paramrun $EXECUTABLE $CONTROL_FILE
+cd $LAUNCHER_WORKDIR/
+echo " WORKING DIR:   $LAUNCHER_WORKDIR/"
+$TACC_LAUNCHER_DIR/paramrun
 
 echo " Parameteric Job Complete"
