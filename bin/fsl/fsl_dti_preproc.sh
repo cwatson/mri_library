@@ -77,7 +77,6 @@ while true; do
     shift
 done
 
-[[ ! -d ${subj} ]] && echo -e "Subject ${subj} is not valid!\n" && exit 2
 
 projdir=${PWD}
 if [[ ${bids} -eq 1 ]]; then
@@ -92,6 +91,7 @@ if [[ ${bids} -eq 1 ]]; then
     fi
     rawdir=${rawdir}/dwi
     srcdir=${rawdir/rawdata/sourcedata}
+    [[ ! -d ${srcdir} ]] && echo -e "Subject ${subj} is not valid!\n" && exit 2
     resdir=${rawdir/rawdata/tractography}
     resdir=${resdir/dwi/dti2}
 else
