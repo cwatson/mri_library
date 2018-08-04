@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Parse option arguments
-#-------------------------------------------------------------------------------
 subjdir=$(realpath ${1}/dti2 | sed 's:/$:$:')
 bpx_dir=${subjdir}.bedpostX
 export LC_ALL=C
@@ -14,9 +12,9 @@ if [ $(${FSLDIR}/bin/imtest ${bpx_dir}/diff_slices/data_slice_0000/f0samples) -e
 fi
 fib=1
 while [ $fib -le $numfib ]; do
-    ${FSLDIR}/bin/fslmerge -z ${bpx_dir}/merged_th${fib}samples `${FSLDIR}/bin/imglob ${bpx_dir}/diff_slices/data_slice_*/th${fib}samples*`
-    ${FSLDIR}/bin/fslmerge -z ${bpx_dir}/merged_ph${fib}samples `${FSLDIR}/bin/imglob ${bpx_dir}/diff_slices/data_slice_*/ph${fib}samples*`
-    ${FSLDIR}/bin/fslmerge -z ${bpx_dir}/merged_f${fib}samples `${FSLDIR}/bin/imglob ${bpx_dir}/diff_slices/data_slice_*/f${fib}samples*`
+    ${FSLDIR}/bin/fslmerge -z ${bpx_dir}/merged_th${fib}samples $(${FSLDIR}/bin/imglob ${bpx_dir}/diff_slices/data_slice_*/th${fib}samples*)
+    ${FSLDIR}/bin/fslmerge -z ${bpx_dir}/merged_ph${fib}samples $(${FSLDIR}/bin/imglob ${bpx_dir}/diff_slices/data_slice_*/ph${fib}samples*)
+    ${FSLDIR}/bin/fslmerge -z ${bpx_dir}/merged_f${fib}samples $(${FSLDIR}/bin/imglob ${bpx_dir}/diff_slices/data_slice_*/f${fib}samples*)
     ${FSLDIR}/bin/fslmaths ${bpx_dir}/merged_th${fib}samples -Tmean ${bpx_dir}/mean_th${fib}samples
     ${FSLDIR}/bin/fslmaths ${bpx_dir}/merged_ph${fib}samples -Tmean ${bpx_dir}/mean_ph${fib}samples
     ${FSLDIR}/bin/fslmaths ${bpx_dir}/merged_f${fib}samples -Tmean ${bpx_dir}/mean_f${fib}samples
@@ -34,7 +32,7 @@ done
 if [ $(${FSLDIR}/bin/imtest ${bpx_dir}/mean_f1samples) -eq 1 ]; then
     ${FSLDIR}/bin/fslmaths ${bpx_dir}/mean_f1samples -mul 0 ${bpx_dir}/mean_fsumsamples
     fib=1
-    while [ $fib -le $numfib ]
+    while [ $fib -le $numfib ];
     do
         ${FSLDIR}/bin/fslmaths ${bpx_dir}/mean_fsumsamples -add ${bpx_dir}/mean_f${fib}samples ${bpx_dir}/mean_fsumsamples
         fib=$(($fib + 1))
@@ -51,9 +49,9 @@ for im in ${bpx_dir}/diff_slices/data_slice_0000/mean_*samples.nii.gz; do
 done
 
 echo Removing intermediate files
-if [ `${FSLDIR}/bin/imtest ${bpx_dir}/merged_th1samples` -eq 1 ]; then
-    if [ `${FSLDIR}/bin/imtest ${bpx_dir}/merged_ph1samples` -eq 1 ]; then
-        if [ `${FSLDIR}/bin/imtest ${bpx_dir}/merged_f1samples` -eq 1 ]; then
+if [ $(${FSLDIR}/bin/imtest ${bpx_dir}/merged_th1samples) -eq 1 ]; then
+    if [ $(${FSLDIR}/bin/imtest ${bpx_dir}/merged_ph1samples) -eq 1 ]; then
+        if [ $(${FSLDIR}/bin/imtest ${bpx_dir}/merged_f1samples) -eq 1 ]; then
             rm -rf ${bpx_dir}/diff_slices
             rm -f ${subjdir}/data_slice_*
             rm -f ${subjdir}/nodif_brain_mask_slice_*

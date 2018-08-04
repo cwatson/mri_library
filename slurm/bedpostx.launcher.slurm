@@ -8,7 +8,6 @@
 #SBATCH --mail-user=Christopher.G.Watson@uth.tmc.edu
 #------------------------------------------------------
 module load launcher
-export LAUNCHER_JOB_FILE=${WORK}/stress_study/logs/stampede2/bpx/bpx.${1}.paramlist
 export LAUNCHER_WORKDIR=${PWD}
 
 # Parse option arguments
@@ -39,13 +38,12 @@ while [ ! -z "$1" ]; do
   esac
   shift
 done
-opts="--nf=$nfibres --fudge=$fudge --bi=$burnin --nj=$njumps --se=$sampleevery --model=$model"
-defopts="--cnonlinear"
-opts="$opts $defopts $other"
+opts="--nf=$nfibres --fudge=$fudge --bi=$burnin --nj=$njumps --se=$sampleevery --model=$model --cnonlinear $other"
 
 echo subjectdir is $subjdir
 echo Making bedpostx directory structure
 mkdir -p ${subjdir}.bedpostX/{diff_slices,logs/monitor,xfms}
+export LAUNCHER_JOB_FILE=${subjdir}.bedpostX/commands.txt
 
 # Preprocessing
 #-------------------------------------------------------------------------------
