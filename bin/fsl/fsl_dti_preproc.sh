@@ -68,8 +68,8 @@ while true; do
         -h|--help)          usage && exit ;;
         -s|--subject)       subj="$2"; shift ;;
         -t|--threshold)     thresh="$2"; shift ;;
-        --rerun)            rerun=1; shift ;;
-        --bids)             bids=1; shift ;;
+        --rerun)            rerun=1 ;;
+        --bids)             bids=1 ;;
         --long)             long=1; sess="$2"; shift ;;
         --acq)              acq="$2"; shift ;;
         * )                 break ;;
