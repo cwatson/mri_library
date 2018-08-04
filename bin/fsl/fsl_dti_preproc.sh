@@ -140,25 +140,25 @@ bet nodif{,_brain} -m -R -f ${thresh}
 # Run eddy
 #-------------------------------------------------------------------------------
 echo -e '\n Running "eddy"!'
-#eddy_openmp \
-#    --imain=dwi_orig \
-#    --mask=nodif_brain_mask \
-#    --index=index.txt \
-#    --acqp=acqparams.txt \
-#    --bvecs=bvecs.norot \
-#    --bvals=bvals \
-#    --repol \
-#    --out=eddy/dwi_eddy
-#ln -sr eddy/dwi_eddy.nii.gz data.nii.gz
-#ln -sr eddy/dwi_eddy.eddy_rotated_bvecs bvecs
-#
-##-------------------------------------------------------------------------------
-## Run dtifit
-##-------------------------------------------------------------------------------
-#mkdir -p dtifit
-#dtifit -k data -m nodif_brain_mask -o dtifit/dtifit \
-#    -r bvecs -b bvals --sse --save_tensor
-#fslmaths dtifit/dtifit_L2 \
-#    -add dtifit/dtifit_L3 \
-#    -div 2 \
-#    dtifit/dtifit_RD
+eddy_openmp \
+    --imain=dwi_orig \
+    --mask=nodif_brain_mask \
+    --index=index.txt \
+    --acqp=acqparams.txt \
+    --bvecs=bvecs.norot \
+    --bvals=bvals \
+    --repol \
+    --out=eddy/dwi_eddy
+ln -sr eddy/dwi_eddy.nii.gz data.nii.gz
+ln -sr eddy/dwi_eddy.eddy_rotated_bvecs bvecs
+
+#-------------------------------------------------------------------------------
+# Run dtifit
+#-------------------------------------------------------------------------------
+mkdir -p dtifit
+dtifit -k data -m nodif_brain_mask -o dtifit/dtifit \
+    -r bvecs -b bvals --sse --save_tensor
+fslmaths dtifit/dtifit_L2 \
+    -add dtifit/dtifit_L3 \
+    -div 2 \
+    dtifit/dtifit_RD
