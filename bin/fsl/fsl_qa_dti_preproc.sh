@@ -63,6 +63,8 @@ done
 
 source $(dirname $0)/fsl_dti_vars.sh
 
+# bet QA
+#-------------------------------------------------------------------------------
 cd ${projdir}/${resdir}
 [[ ! -d qa_bet ]] && mkdir qa_bet
 lower=$(${FSLDIR}/bin/fslstats nodif_brain -P 1)
@@ -82,3 +84,8 @@ montage -geometry ${imsize} \
     slice_*.png \
     qa_bet_sag.png
 rm slice_*.png
+
+# Eddy QA
+#-------------------------------------------------------------------------------
+cd ${projdir}/${resdir}
+eddy_quad eddy/dwi_eddy -idx index.txt -par acqparams.txt -m nodif_brain_mask -b bvals
