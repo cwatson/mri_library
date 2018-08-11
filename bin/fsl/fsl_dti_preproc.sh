@@ -1,8 +1,6 @@
 #! /bin/bash
-#
-# Script to run DTI preprocessing with the new "eddy" tool.
-#_______________________________________________________________________________
-# by Chris Watson, 2017-02-28
+# Chris Watson, 2017-02-28
+set -a
 
 usage() {
     cat << !
@@ -77,32 +75,7 @@ while true; do
     shift
 done
 
-
-projdir=${PWD}
-if [[ ${bids} -eq 1 ]]; then
-    target=sub-${subj}
-    rawdir=rawdata/sub-${subj}/
-    if [[ ${long} -eq 1 ]]; then
-        target=${target}_ses-${sess}
-        rawdir=${rawdir}/ses-${sess}
-    fi
-    if [[ ${acq} != '' ]]; then
-        target=${target}_acq-${acq}_dwi
-    fi
-    rawdir=${rawdir}/dwi
-    srcdir=${rawdir/rawdata/sourcedata}
-    [[ ! -d ${srcdir} ]] && echo -e "Subject ${subj} is not valid!\n" && exit 2
-    resdir=${rawdir/rawdata/tractography}
-    resdir=${resdir/dwi/dti2}
-else
-    target=dwi_orig
-    rawdir=${subj}
-    if [[ ${acq} != '' ]]; then
-        rawdir=${rawdir}/${acq}
-    fi
-    srcdir=${rawdir}
-    resdir=${rawdir}
-fi
+source $(dirname $0)/fsl_dti_vars.sh
 
 #-------------------------------------------------------------------------------
 # Extract and convert DICOMs, if necessary
