@@ -89,3 +89,11 @@ rm slice_*.png
 #-------------------------------------------------------------------------------
 cd ${projdir}/${resdir}
 eddy_quad eddy/dwi_eddy -idx index.txt -par acqparams.txt -m nodif_brain_mask -b bvals
+
+# tSNR
+#-------------------------------------------------------------------------------
+#fslmaths data -Tmean mean
+#fslmaths data -Tstd std
+#fslmaths mean -div std tsnr
+#fslmaths tsnr -mas nodif_brain_mask tsnr_mask
+#echo $(fslstats tsnr_mask -l 0 -M) >> tsnr.txt
