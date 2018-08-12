@@ -88,6 +88,7 @@ rm slice_*.png
 # Eddy QA
 #-------------------------------------------------------------------------------
 cd ${projdir}/${resdir}
+[[ -d eddy/dwi_eddy.qc ]] && rm -r eddy/dwi_eddy.qc
 eddy_quad eddy/dwi_eddy -idx index.txt -par acqparams.txt -m nodif_brain_mask -b bvals
 
 # tSNR
