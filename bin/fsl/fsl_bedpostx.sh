@@ -78,7 +78,7 @@ while true; do
 done
 opts="--nf=$nfibres --fudge=$fudge --bi=$burnin --nj=$njumps --se=$sampleevery --model=$model --cnonlinear"
 
-source $(dirname $0)/fsl_dti_vars.sh
+source $(dirname $(realpath $0))/fsl_dti_vars.sh
 subjdir=$(realpath ${resdir/\/$/})
 bpxdir=${subjdir}.bedpostX
 
