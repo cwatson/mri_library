@@ -10,7 +10,7 @@
 module load launcher
 export LAUNCHER_WORKDIR=${PWD}
 
-${HOME}/code/dnl_library/bin/fsl/fsl_bedpostx.sh "$@"
+. ${HOME}/code/dnl_library/bin/fsl/fsl_bedpostx.sh "$@"
 
 #----------------
 # Job Submission
