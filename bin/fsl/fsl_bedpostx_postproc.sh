@@ -22,7 +22,11 @@ while true; do
     shift
 done
 
-source $(dirname $0)/fsl_dti_vars.sh
+if [[ -n ${scriptdir} ]]; then
+    source ${scriptdir}/fsl_dti_vars.sh
+else
+    source $(dirname $0)/fsl_dti_vars.sh
+fi
 subjdir=$(realpath ${resdir/\/$/})
 bpx=${subjdir}.bedpostX
 export LC_ALL=C
