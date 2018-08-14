@@ -1,30 +1,48 @@
 #! /bin/bash
-#
-# Perform all the necessary steps for running "probtrackx2" using Freesurfer
-# labels.
 #_______________________________________________________________________________
+# updated 2018-08-12 to work w/ BIDS-structured data on Stampede2
 # updated 2017-03-27
 # Chris Watson, 2016-01-11
+set -a
 
 usage() {
     cat << !
-    usage: $(basename $0) [options]
 
-    This script will perform the necessary steps needed before running
-    "probtrackx2" with Freesurfer labels.
+ Performs the steps needed before running "probtrackx2" with Freesurfer labels:
+ generation of a NIfTI "aparc+aseg" file (if it doesn't exist); register the
+ anatomical (T1) volume to diffusion space (via TRACULA).
 
-    OPTIONS:
-        -h          Show this message
-        -a          Atlas (either 'dk.scgm', 'dkt.scgm', or 'destrieux.scgm')
-        -p          Project name
-        -g          Subject group
-        -s          Subject name/ID
-        --scanner   Scanner (either 1.5T or 3T)
-        --rerun     Include if you would like to re-run registrations
+ USAGE: $(basename $0) [OPTIONS]
 
-    EXAMPLES:
-        $(basename $0) -p CCFA -g case -s cd001 --rerun
-        $(basename $0) -p Fontan -g control -s 02-430-4 --scanner 1.5T
+ OPTIONS:
+    -h, --help
+        Show this message
+
+    -a, --atlas [ATLAS]
+        The atlas name (either 'dk.scgm', 'dkt.scgm', or 'destrieux.scgm')
+
+    -s, --subject [SUBJECT]
+        Subject ID. If you don't specify "--bids", then [SUBJECT] should be the
+        directory name. If you do, it should be the subject label.
+
+    --bids
+        Include if your study is BIDS compliant
+
+    --long [SESSION]
+        If it's a longitudinal study, specify the session label. Only valid if
+        BIDS compliant
+
+    --acq [ACQ LABEL]
+        If multiple acquisitions, provide the label. For example, the TBI study
+        acquired 2 DTI scans; the acq label for the TBI study would be "iso":
+            sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
+
+    --rerun
+        Include if you want to re-run the registration steps
+
+ EXAMPLE:
+     $(basename $0) -s SP7180 --bids --long 01 --acq iso
+
 !
 }
 
@@ -32,61 +50,47 @@ usage() {
 #-------------------------------------------------------------------------------
 [[ $# == 0 ]] && usage && exit
 
-TEMP=$(getopt -o ha:p:g:s: --long scanner:,rerun -- "$@")
+TEMP=$(getopt -o ha:s: --long help,atlas:,subject:,bids,long:,acq:,rerun -- "$@")
 [[ $? -ne 0 ]] && usage && exit 1
 eval set -- "${TEMP}"
 
+bids=0
+long=0
+sess=''
+acq=''
 rerun=0
 while true; do
     case "$1" in
-        -h)         usage && exit ;;
-        -a)         atlas=$2; shift ;;
-        -g)         group=$2; shift ;;
-        -s)         subj=$2; shift ;;
-        -p)         proj=$2; shift ;;
-        --scanner)  scanner=$2; shift ;;
-        --rerun)    rerun=1; shift ;;
+        -h|--help)      usage && exit ;;
+        -a|--atlas)     atlas=$2; shift ;;
+        -s|--subject)   subj="$2"; shift ;;
+        --bids)         bids=1 ;;
+        --long)         long=1; sess="$2"; shift ;;
+        --acq)          acq="$2"; shift ;;
+        --rerun)        rerun=1; shift ;;
         * )         break ;;
     esac
     shift
 done
 
-[[ -z ${subj} ]] && echo "Must provide a subject ID!" && exit 2
-
 atlarray=(dk.scgm dkt.scgm destrieux.scgm)
-if [[ ! "${atlarray[@]}" =~ "${atlas}" ]]; then
-    echo -e "\nAtlas is invalid!\n" && exit 3
-fi
+[[ ! "${atlarray[@]}" =~ "${atlas}" ]] && echo -e "\nAtlas ${atlas} is invalid!\n" && exit 2
+
+source $(dirname $0)/fsl_dti_vars.sh
 
 # Set directory variables
 #-------------------------------------------------------------------------------
-if [[ ${proj} == 'TBI' ]]; then
-    scanner=''
-    group=''
-    base_dir=${WORK}/stress_study
-    dti_dir=${base_dir}/dti/${subj}/dti2
-    export SUBJECTS_DIR=${base_dir}/vol
+if [[ ${bids} -eq 1 ]]; then
+    dti_dir=${projdir}/${resdir}
 else
-    if [[ ${proj} == 'CCFA' ]]; then
-        scanner=''
-        base_dir='/raid2/fmri8/ibd/ccfa'
-    elif [[ ${proj} == 'Fontan' ]]; then
-        base_dir='/raid2/fmri8/fontan'
-    else
-        echo "Project name invalid!" && exit 5
-    fi
-    dti_dir=${base_dir}/dti/${scanner}/${group}/${subj}
-    export SUBJECTS_DIR=${base_dir}/volumetric/freesurfer/${scanner}/${group}
+    dti_dir=${projdir}/dti/${resdir}
 fi
+SUBJECTS_DIR=${projdir}/freesurfer
 
-[[ ! -d ${dti_dir} ]] && echo "Subject/group/scanner invalid!" && exit 4
+[[ ! -d ${dti_dir} ]] && echo "Subject directory ${dti_dir} is invalid!" && exit 3
 ln -s ${dti_dir}/{nodif.nii.gz,lowb.nii.gz}
 ln -s ${dti_dir}/{nodif_brain_mask.nii.gz,lowb_brain_mask.nii.gz}
 
-if [[ ${rerun} -eq 1 ]]; then
-    mkdir ${SUBJECTS_DIR}/${subj}/dti_old
-    mv ${SUBJECTS_DIR}/${subj}/{dmri,dlabel} ${SUBJECTS_DIR}/${subj}/dti_old
-fi
 mkdir -p ${SUBJECTS_DIR}/${subj}/{dmri,dlabel/{anatorig,diff}}
 fs_dti_dir=${SUBJECTS_DIR}/${subj}/dmri
 fs_label_dir=${SUBJECTS_DIR}/${subj}/dlabel
@@ -104,8 +108,11 @@ fi
 atlas_image="${fs_label_dir}/anatorig/${atlas_base}.nii.gz"
 
 [[ ! -e "${mri_dir}/${atlas_base}.mgz" ]] && mri_aparc2aseg --s ${subj} --annot ${atlas_base%+aseg}
-mri_convert ${mri_dir}/${atlas_base}.{mgz,nii.gz}
-mv ${mri_dir}/${atlas_base}.nii.gz ${fs_label_dir}/anatorig/
+if  [[ ! -e ${fs_label_dir}/anatorig/${atlas_base}.nii.gz ]]; then
+    if [[ ! -e ${mri_dir}/${atlas_base}.nii.gz ]]; then
+        mri_convert ${mri_dir}/${atlas_base}.{mgz,nii.gz}
+    fi
+    mv ${mri_dir}/${atlas_base}.nii.gz ${fs_label_dir}/anatorig/
 
 #-------------------------------------------------------------------------------
 # Check if the transforms from Tracula exist; if not, create them
@@ -150,7 +157,7 @@ fi
 #-------------------------------------------------------------------------------
 
 labelfile=${HOME}/Dropbox/dnl_library/bin/fsl/${atlas}.txt
-[[ ! -e ${labelfile} ]] && echo "Label file missing!" && exit 6
+[[ ! -e ${labelfile} ]] && echo "Label file missing!" && exit 4
 mkdir -p ${seed_dir} && cd ${seed_dir}
 while read line; do
     roiID=$(echo ${line} | awk '{print $1}' -)
@@ -168,4 +175,4 @@ paste sizes.txt seeds.txt | sort -k1 -nr - | awk '{print $2}' - >> seeds_sorted.
 # Ventricles mask
 mri_binarize --i ${fs_label_dir}/diff/${atlas_base}.bbr.nii.gz \
     --ventricles --o ventricles.nii.gz
-cd ${base_dir}
+cd ${projdir}

@@ -13,20 +13,21 @@ usage() {
 projdir=${PWD}
 if [[ ${bids} -eq 1 ]]; then
     target=sub-${subj}
-    rawdir=rawdata/sub-${subj}/
+    rawdir=rawdata/${target}/
     if [[ ${long} -eq 1 ]]; then
         target=${target}_ses-${sess}
         rawdir=${rawdir}/ses-${sess}
     fi
     if [[ ${acq} != '' ]]; then
         target=${target}_acq-${acq}_dwi
+    else
+        target=${target}_dwi
     fi
     rawdir=${rawdir}/dwi
     srcdir=${rawdir/rawdata/sourcedata}
     resdir=${rawdir/rawdata/tractography}
-    resdir=${resdir/dwi/dti2}
 else
-    target=dwi_orig
+    target=${subj}_dwi
     rawdir=${subj}
     if [[ ${acq} != '' ]]; then
         rawdir=${rawdir}/${acq}

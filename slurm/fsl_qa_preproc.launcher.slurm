@@ -2,12 +2,12 @@
 #
 #SBATCH -N 1                # Total number of nodes (16 cores/node)
 #SBATCH -p skx-normal       # Queue name
-#SBATCH -t 00:30:00         # Run time (hh:mm:ss)
+#SBATCH -t 00:05:00         # Run time (hh:mm:ss)
 #SBATCH --mail-type=end
 #SBATCH --mail-user=Christopher.G.Watson@uth.tmc.edu
 #------------------------------------------------------
 module load launcher
-export LAUNCHER_JOB_FILE=${WORK}/stress_study/logs/stampede2/qa_preproc.paramlist
+export LAUNCHER_JOB_FILE=${WORK}/stress_study/logs/stampede2/qa_preproc_${1}.paramlist
 export LAUNCHER_WORKDIR=${PWD}
 
 for subj in "$@"; do

@@ -5,7 +5,7 @@ set -a
 usage() {
     cat << !
 
- Perform QA on the skull-stripping step from `fsl_dti_preproc.sh`. Utilizes
+ Perform QA on the skull-stripping step from "fsl_dti_preproc.sh". Utilizes
  "overlay" and "slicer" programs from FSL.
 
  USAGE: $(basename $0) [OPTIONS]
@@ -27,7 +27,7 @@ usage() {
 
      --acq [ACQ LABEL]
          If multiple acquisitions, provide the label. For example, the TBI study
-         acquired 2 DTI scans; the acq label for "dti2" would be "iso", e.g.
+         acquired 2 DTI scans; the acq label for the TBI studywould be "iso":
             sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
 
 
@@ -41,7 +41,7 @@ usage() {
 #-------------------------------------------------------------------------------
 [[ $# == 0 ]] && usage && exit
 
-TEMP=$(getopt -o hs: --long help,subject,bids,long:,acq: -- "$@")
+TEMP=$(getopt -o hs: --long help,subject:,bids,long:,acq: -- "$@")
 [[ $? -ne 0 ]] && usage && exit 1
 eval set -- "${TEMP}"
 
@@ -51,12 +51,12 @@ sess=''
 acq=''
 while true; do
     case "$1" in
-        -h|--help)          usage && exit ;;
-        -s|--subject)       subj="$2"; shift ;;
-        --bids)             bids=1 ;;
-        --long)             long=1; sess="$2"; shift ;;
-        --acq)              acq="$2"; shift ;;
-        * )                 break ;;
+        -h|--help)      usage && exit ;;
+        -s|--subject)   subj="$2"; shift ;;
+        --bids)         bids=1 ;;
+        --long)         long=1; sess="$2"; shift ;;
+        --acq)          acq="$2"; shift ;;
+        * )             break ;;
     esac
     shift
 done
