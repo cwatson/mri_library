@@ -11,7 +11,8 @@ module load launcher
 export LAUNCHER_WORKDIR=${PWD}
 
 export scriptdir=$(dirname $(which fsl_bedpostx.sh))
-source $(which fsl_bedpostx.sh) "$@"
+source ${scriptdir}/fsl_bedpostx.sh "$@"
+export LAUNCHER_JOB_FILE=${bpxdir}/commands.txt
 
 #----------------
 # Job Submission
