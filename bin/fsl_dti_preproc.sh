@@ -5,20 +5,22 @@ set -a
 usage() {
     cat << !
 
- Preprocess DTI data using FSL's tools, including the new "eddy" tool. If you
- specify "--bids", this should be run from the base project directory. The
- script expects to find "sourcedata/" (DICOM's) and "rawdata" directories; both
- of which should be BIDS compliant.
+ Preprocess DTI data using FSL's tools, including the new "eddy" tool.
+ This should be run from the base project directory. The
+ script expects to find "sourcedata/" (DICOM's) directories, which should be
+ BIDS compliant.
 
- USAGE: $(basename $0) [options]
+ USAGE:
+    $(basename $0) [-s SUBJECT] [-t THRESH] [--rerun]
+        [--long SESSION] [--acq LABEL]
 
  OPTIONS:
      -h, --help
          Show this message
 
      -s, --subject [SUBJECT]
-         Subject ID. If you don't specify "--bids", then [SUBJECT] should be
-         the directory name. If you do, it should be the subject label.
+         Subject ID. This will be the "label" in the directories and filenames,
+         as outlined by the BIDS spec.
 
      -t, --threshold [THRESH]
          Intensity threshold for "bet" (default: 0.5)
@@ -26,12 +28,8 @@ usage() {
      --rerun
          Include if you are re-running; will re-do "bet" and "eddy"
 
-     --bids
-         Include if your study is BIDS compliant
-
      --long [SESSION]
-         If it's a longitudinal study, specify the session label. Only valid if
-         BIDS compliant
+         If it's a longitudinal study, specify the session label
 
      --acq [ACQ LABEL]
          If multiple acquisitions, provide the label. For example, the TBI study
@@ -39,10 +37,10 @@ usage() {
             sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
 
 
- EXAMPLE:
+ EXAMPLES:
      $(basename $0) -s SP7104_time1 -t 0.4
      $(basename $0) -s SP7180_time1 --rerun
-     $(basename $0) -s SP7180 --bids --long 01 --acq iso
+     $(basename $0) -s SP7180 --long 01 --acq iso
 
 !
 }
@@ -51,13 +49,12 @@ usage() {
 #-------------------------------------------------------------------------------
 [[ $# == 0 ]] && usage && exit
 
-TEMP=$(getopt -o hs:t: --long help,subject:,threshold:,rerun,bids,long:,acq: -- "$@")
+TEMP=$(getopt -o hs:t: --long help,subject:,threshold:,rerun,long:,acq: -- "$@")
 [[ $? -ne 0 ]] && usage && exit 1
 eval set -- "${TEMP}"
 
 thresh=0.5
 rerun=0
-bids=0
 long=0
 sess=''
 acq=''
@@ -67,7 +64,6 @@ while true; do
         -s|--subject)   subj="$2"; shift ;;
         -t|--threshold) thresh="$2"; shift ;;
         --rerun)        rerun=1 ;;
-        --bids)         bids=1 ;;
         --long)         long=1; sess="$2"; shift ;;
         --acq)          acq="$2"; shift ;;
         *)              break ;;
@@ -81,39 +77,80 @@ source $(dirname $0)/fsl_dti_vars.sh
 # Extract and convert DICOMs, if necessary
 #-------------------------------------------------------------------------------
 if [[ ${rerun} -eq 0 ]]; then
+    mkdir -p ${rawdir} ${resdir}
     cd ${projdir}/${srcdir}
-    tar zxf dicom.tar.gz
+
+    # Extract first file, determine Manufacturer
+    #-------------------------------------------------------
+    firstfile=$(tar tf ${target}_dicom.tar.gz | grep -v '/$' | head -1)
+    tar xf ${target}_dicom.tar.gz ${firstfile} --xform='s#^.+/##x'
+    manuf=$(dcmdump +P 0008,0070 $(basename ${firstfile}) | cut -d"[" -f2 | cut -d"]" -f1)
+
+    mkdir tmp
+    if [[ ${manuf} == *"Philips"* ]]; then
+        # Philips data I've processed has a "0000001" directory; don't remove
+        tar xf ${target}_dicom.tar.gz -C tmp
+    else
+        tar xf ${target}_dicom.tar.gz --xform='s#^.+/##x' -C tmp
+    fi
+
+    # Convert DICOMs to NIfTI
+    #-------------------------------------------------------
     dcmconv=$(which dcm2niix)
-    ${dcmconv} -z i -b y -f ${target} -o . DICOM/
-    rm -r DICOM
+    ${dcmconv} -z i -b y -f ${target} -o . tmp
+    rm -r tmp
 
     cp ${target}.bvec ${projdir}/${resdir}/bvecs.norot
+    lowb=$(awk '{for(i=1;i<=NF;i++){if($i==0)x[i]=i}}END{for(i in x){print x[i] - 1}}' ${target}.bval)
     cp ${target}.bval ${projdir}/${resdir}/bvals
-    if [[ ${bids} -eq 1 ]]; then
-        mv ${target}.{bvec,bval,json,nii.gz} ${projdir}/${rawdir}/
-        cd ${projdir}/${rawdir}
-        ln -sr ${target}.nii.gz ${projdir}/${resdir}/dwi_orig.nii.gz
-        cd ${projdir}/${resdir}
-    fi
-    fslroi dwi_orig nodif 0 1
 
+    reptime=$(grep Repetition ${target}.json | cut -d: -f2 | sed 's/,//')
+    manuf=$(grep Manufacturer\" ${target}.json)
+    mv ${target}.{bvec,bval,json,nii.gz} ${projdir}/${rawdir}/
+    cd ${projdir}/${resdir}
+    ln -s ${projdir}/${rawdir}/${target}.nii.gz dwi_orig.nii.gz
+
+    ct=1
+    for i in ${lowb}; do
+        fslroi dwi_orig lowb${ct} ${i} 1
+        let "ct += 1"
+    done
+    fslmerge -t lowb lowb[[:digit:]]*
+    rm lowb[[:digit:]]*
+    fslmaths lowb -Tmean nodif
+
+    # Setup for "eddy"
+    mkdir -p eddy
     printf "0 1 0 0.0646" > acqparams.txt
     nvols=$(fslnvols dwi_orig)
     indx=""
     for ((i=1; i<=${nvols}; i+=1)); do indx="$indx 1"; done
     echo $indx > index.txt
-    mkdir -p eddy
+
+    # For slice-to-volume correction
+    nslices=$(fslval dwi_orig dim3)
+    mp=$(expr ${nslices} / 4)   # Max. recommended by Jesper
+
+    if [[ ${manuf} == "Philips" ]]; then
+        # For the TBI stress study, DWI is acquired sequentially ("single package default")
+        timediff=$(echo "${reptime} / ${nslices}" | bc -l)
+        for ((i=0; i<${nslices}; i++)); do
+            echo "$i * ${timediff}" | bc -l >> slspec.txt
+        done
+    fi
+
 else
     cd ${projdir}/${resdir}
 fi
 
-bet nodif{,_brain} -m -R -f ${thresh}
+${FSLDIR}/bin/bet nodif{,_brain} -m -R -f ${thresh}
 
 #-------------------------------------------------------------------------------
 # Run eddy
 #-------------------------------------------------------------------------------
+export SGE_ROOT=''
 echo -e '\n Running "eddy"!'
-eddy_openmp \
+eddy_cuda \ #openmp \
     --imain=dwi_orig \
     --mask=nodif_brain_mask \
     --index=index.txt \
@@ -121,9 +158,13 @@ eddy_openmp \
     --bvecs=bvecs.norot \
     --bvals=bvals \
     --repol \
+    --mporder=${mp} \
+    --slspec=slspec.txt \
+    --residuals \
+    --cnr_maps \
     --out=eddy/dwi_eddy
-ln -sr eddy/dwi_eddy.nii.gz data.nii.gz
-ln -sr eddy/dwi_eddy.eddy_rotated_bvecs bvecs
+ln -s eddy/dwi_eddy.nii.gz data.nii.gz #TODO change to outlier free?
+ln -s eddy/dwi_eddy.eddy_rotated_bvecs bvecs
 
 #-------------------------------------------------------------------------------
 # Run dtifit
