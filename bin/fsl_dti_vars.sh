@@ -11,30 +11,20 @@ usage() {
 }
 
 projdir=${PWD}
-if [[ ${bids} -eq 1 ]]; then
-    target=sub-${subj}
-    rawdir=rawdata/${target}/
-    if [[ ${long} -eq 1 ]]; then
-        target=${target}_ses-${sess}
-        rawdir=${rawdir}/ses-${sess}
-    fi
-    if [[ ${acq} != '' ]]; then
-        target=${target}_acq-${acq}_dwi
-    else
-        target=${target}_dwi
-    fi
-    rawdir=${rawdir}/dwi
-    srcdir=${rawdir/rawdata/sourcedata}
-    resdir=${rawdir/rawdata/tractography}
-else
-    target=${subj}_dwi
-    rawdir=${subj}
-    if [[ ${acq} != '' ]]; then
-        rawdir=${rawdir}/${acq}
-    fi
-    srcdir=${rawdir}
-    resdir=${rawdir}
+target=sub-${subj}
+rawdir=rawdata/${target}/
+if [[ ${long} -eq 1 ]]; then
+    target=${target}_ses-${sess}
+    rawdir=${rawdir}/ses-${sess}
 fi
+if [[ ${acq} != '' ]]; then
+    target=${target}_acq-${acq}_dwi
+else
+    target=${target}_dwi
+fi
+rawdir=${rawdir}/dwi
+srcdir=${rawdir/rawdata/sourcedata}
+resdir=${rawdir/rawdata/tractography}
 
 [[ ! -d ${srcdir} ]] && echo -e "Subject ${subj} is not valid!\n" && exit 2
 

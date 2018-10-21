@@ -15,15 +15,10 @@ usage() {
          Show this message
 
      -s, --subject [SUBJECT]
-         Subject ID. If you don't specify "--bids", then [SUBJECT] should be
-         the directory name. If you do, it should be the subject label.
-
-     --bids
-         Include if your study is BIDS compliant
+         Subject ID. This will be the "label" as outlined by the BIDS spec
 
      --long [SESSION]
-         If it's a longitudinal study, specify the session label. Only valid if
-         BIDS compliant
+         If it's a longitudinal study, specify the session label
 
      --acq [ACQ LABEL]
          If multiple acquisitions, provide the label. For example, the TBI study
@@ -32,7 +27,7 @@ usage() {
 
 
  EXAMPLE:
-     $(basename $0) -s SP7180 --bids --long 01 --acq iso
+     $(basename $0) -s SP7180 --long 01 --acq iso
 
 !
 }
@@ -41,11 +36,10 @@ usage() {
 #-------------------------------------------------------------------------------
 [[ $# == 0 ]] && usage && exit
 
-TEMP=$(getopt -o hs: --long help,subject:,bids,long:,acq: -- "$@")
+TEMP=$(getopt -o hs: --long help,subject:,long:,acq: -- "$@")
 [[ $? -ne 0 ]] && usage && exit 1
 eval set -- "${TEMP}"
 
-bids=0
 long=0
 sess=''
 acq=''
@@ -53,7 +47,6 @@ while true; do
     case "$1" in
         -h|--help)      usage && exit ;;
         -s|--subject)   subj="$2"; shift ;;
-        --bids)         bids=1 ;;
         --long)         long=1; sess="$2"; shift ;;
         --acq)          acq="$2"; shift ;;
         * )             break ;;

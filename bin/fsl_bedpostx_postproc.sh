@@ -2,11 +2,10 @@
 set -a
 
 [[ $# == 0 ]] && usage && exit
-TEMP=$(getopt -o hs: --long help,subject:,bids,long:,acq: -- "$@")
+TEMP=$(getopt -o hs: --long help,subject:,long:,acq: -- "$@")
 [[ $? -ne 0 ]] && usage && exit 1
 eval set -- "${TEMP}"
 
-bids=0
 long=0
 sess=''
 acq=''
@@ -14,7 +13,6 @@ while true; do
     case "$1" in
         -h|--help)      usage && exit ;;
         -s|--subject)   subj="$2"; shift ;;
-        --bids)         bids=1 ;;
         --long)         long=1; sess="$2"; shift ;;
         --acq)          acq="$2"; shift ;;
         * )             break ;;

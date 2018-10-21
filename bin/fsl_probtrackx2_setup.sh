@@ -22,15 +22,10 @@ usage() {
         The atlas name (either 'dk.scgm', 'dkt.scgm', or 'destrieux.scgm')
 
     -s, --subject [SUBJECT]
-        Subject ID. If you don't specify "--bids", then [SUBJECT] should be the
-        directory name. If you do, it should be the subject label.
-
-    --bids
-        Include if your study is BIDS compliant
+        Subject ID. This will be the "label" outlined by the BIDS spec
 
     --long [SESSION]
-        If it's a longitudinal study, specify the session label. Only valid if
-        BIDS compliant
+        If it's a longitudinal study, specify the session label.
 
     --acq [ACQ LABEL]
         If multiple acquisitions, provide the label. For example, the TBI study
@@ -41,7 +36,7 @@ usage() {
         Include if you want to re-run the registration steps
 
  EXAMPLE:
-     $(basename $0) -s SP7180 --bids --long 01 --acq iso
+     $(basename $0) -s SP7180 --long 01 --acq iso
 
 !
 }
@@ -50,11 +45,10 @@ usage() {
 #-------------------------------------------------------------------------------
 [[ $# == 0 ]] && usage && exit
 
-TEMP=$(getopt -o ha:s: --long help,atlas:,subject:,bids,long:,acq:,rerun -- "$@")
+TEMP=$(getopt -o ha:s: --long help,atlas:,subject:,long:,acq:,rerun -- "$@")
 [[ $? -ne 0 ]] && usage && exit 1
 eval set -- "${TEMP}"
 
-bids=0
 long=0
 sess=''
 acq=''
@@ -64,7 +58,6 @@ while true; do
         -h|--help)      usage && exit ;;
         -a|--atlas)     atlas=$2; shift ;;
         -s|--subject)   subj="$2"; shift ;;
-        --bids)         bids=1 ;;
         --long)         long=1; sess="$2"; shift ;;
         --acq)          acq="$2"; shift ;;
         --rerun)        rerun=1; shift ;;
@@ -80,11 +73,7 @@ source $(dirname $0)/fsl_dti_vars.sh
 
 # Set directory variables
 #-------------------------------------------------------------------------------
-if [[ ${bids} -eq 1 ]]; then
-    dti_dir=${projdir}/${resdir}
-else
-    dti_dir=${projdir}/dti/${resdir}
-fi
+dti_dir=${projdir}/${resdir}
 SUBJECTS_DIR=${projdir}/freesurfer
 
 [[ ! -d ${dti_dir} ]] && echo "Subject directory ${dti_dir} is invalid!" && exit 3
