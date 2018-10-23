@@ -12,7 +12,7 @@ usage() {
 
  USAGE:
     $(basename $0) [-s SUBJECT] [-t THRESH] [--rerun]
-        [--long SESSION] [--acq LABEL]
+        [--long SESSION] [--acq LABEL] [--tgz FILE]
 
  OPTIONS:
      -h, --help
@@ -37,6 +37,10 @@ usage() {
          acquired 2 DTI scans; the acq label for the TBI study would be "iso":
             sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
 
+     --tgz [TGZ FILE]
+         You can pass a specific `.tar.gz` file containing the DICOM's if you
+         have not already set-up and placed it in the `sourcedata` directory
+         tree. This will rename it to follow the BIDS spec.
 
  EXAMPLES:
      $(basename $0) -s SP7104_time1 -t 0.4
@@ -50,7 +54,7 @@ usage() {
 #-------------------------------------------------------------------------------
 [[ $# == 0 ]] && usage && exit
 
-TEMP=$(getopt -o hs:t: --long help,subject:,threshold:,rerun,long:,acq: -- "$@")
+TEMP=$(getopt -o hs:t: --long help,subject:,threshold:,rerun,long:,acq:,tgz: -- "$@")
 [[ $? -ne 0 ]] && usage && exit 1
 eval set -- "${TEMP}"
 
@@ -59,6 +63,7 @@ rerun=0
 long=0
 sess=''
 acq=''
+tgz=''
 while true; do
     case "$1" in
         -h|--help)      usage && exit ;;
@@ -67,6 +72,7 @@ while true; do
         --rerun)        rerun=1 ;;
         --long)         long=1; sess="$2"; shift ;;
         --acq)          acq="$2"; shift ;;
+        --tgz)          tgz="$2"; shift ;;
         *)              break ;;
     esac
     shift
@@ -84,6 +90,15 @@ if [[ ${rerun} -eq 0 ]]; then
     # Extract first file, determine Manufacturer,
     # then extract entire archive
     #-------------------------------------------------------
+    if [[ ${tgz} != '' ]]; then
+        if [[ -f ${tgz} ]]; then
+            mv ${tgz} ${projdir}/${srcdir}/${target}_dicom.tar.gz
+        else
+            echo "Input file ${tgz} is invalid!"
+            echo "Please make sure to use the full path to the file."
+            exit 2
+        fi
+    fi
     firstfile=$(tar tf ${target}_dicom.tar.gz | grep -v '/$' | head -1)
     tar xf ${target}_dicom.tar.gz ${firstfile} --xform='s#^.+/##x'
     manuf=$(dcmdump +P 0008,0070 $(basename ${firstfile}) | cut -d"[" -f2 | cut -d"]" -f1)
@@ -118,8 +133,8 @@ if [[ ${rerun} -eq 0 ]]; then
         let "ct += 1"
     done
     fslmerge -t lowb lowb[[:digit:]]*
-    rm lowb[[:digit:]]*
     fslmaths lowb -Tmean nodif
+    rm lowb*
 
 else
     cd ${projdir}/${resdir}

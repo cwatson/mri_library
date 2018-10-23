@@ -1,3 +1,10 @@
+# 2018-10-23
+
+* `dti_dicom2nifti_bet` now allows the specific input of the *DICOM* `.tar.gz` file, via the option `--tgz`.
+    This means it is not required to have the `sourcedata` directory tree already set-up
+* `dti_vars` will create `${srcdir}` if it doesn't exist, to facilitate the above change
+
+
 # 2018-10-22
 File renames and additions
 

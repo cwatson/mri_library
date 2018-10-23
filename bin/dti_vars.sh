@@ -26,6 +26,6 @@ rawdir=${rawdir}/dwi
 srcdir=${rawdir/rawdata/sourcedata}
 resdir=${rawdir/rawdata/tractography}
 
-[[ ! -d ${srcdir} ]] && echo -e "Subject ${subj} is not valid!\n" && exit 2
+[[ ! -d ${srcdir} ]] && mkdir -p ${srcdir}
 
 export projdir target rawdir srcdir resdir
