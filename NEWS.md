@@ -1,9 +1,19 @@
+# 2018-10-22
+File renames and additions
+
+* Removed the leading `fsl_` from the scripts, as it was redundant
+* Initial preprocessing script no longer runs `eddy`
+    * Created a separate `dti_eddy.sh` and `dti_qc_eddy.sh` since `eddy` is time-consuming
+* Renamed the first *QC* script to `dti_qc_bet.sh`
+
+
 # 2018-10-21
 Overhaul of the preprocessing script
 
 ## General updates
 * Remove the `--bids` option from all scripts; the project directory is now required to conform to the *BIDS* standard
 * Initial commit of `README.md`
+* Move atlas text files to `atlases` directory
 
 ## Preprocessing updates
 * Now creates output directories if they don't already exist

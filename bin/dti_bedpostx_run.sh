@@ -72,9 +72,9 @@ done
 opts="--nf=$nfibres --fudge=$fudge --bi=$burnin --nj=$njumps --se=$sampleevery --model=$model --cnonlinear"
 
 if [[ -n ${scriptdir} ]]; then
-    source ${scriptdir}/fsl_dti_vars.sh
+    source ${scriptdir}/dti_vars.sh
 else
-    source $(dirname $0)/fsl_dti_vars.sh
+    source $(dirname $0)/dti_vars.sh
 fi
 subjdir=$(realpath ${resdir/\/$/})
 bpxdir=${subjdir}.bedpostX
@@ -88,7 +88,7 @@ export LAUNCHER_JOB_FILE=${bpxdir}/commands.txt
 
 echo Queuing preprocessing stages
 export LC_ALL=C
-cp ${subjdir}/{bvecs,bvals,nodif_brain.nii.gz,nodif_brain_mask.nii.gz} ${bpxdir}
+ln ${subjdir}/{bvecs,bvals,nodif_brain.nii.gz,nodif_brain_mask.nii.gz} ${bpxdir}
 ${FSLDIR}/bin/fslslice ${subjdir}/data
 ${FSLDIR}/bin/fslslice ${subjdir}/nodif_brain_mask
 

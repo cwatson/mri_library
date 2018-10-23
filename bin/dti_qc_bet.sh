@@ -5,8 +5,9 @@ set -a
 usage() {
     cat << !
 
- Perform QA on the skull-stripping step from "fsl_dti_preproc.sh". Utilizes
- "overlay" and "slicer" programs from FSL.
+ Perform QC on the skull-stripping step from "dti_dicom2nifti_bet.sh". Utilizes
+ "overlay" and "slicer" programs from FSL, along with programs from
+ "ImageMagick".
 
  USAGE: $(basename $0) [OPTIONS]
 
@@ -54,40 +55,29 @@ while true; do
     shift
 done
 
-source $(dirname $0)/fsl_dti_vars.sh
+source $(dirname $0)/dti_vars.sh
 
-# bet QA
+# bet QC
 #-------------------------------------------------------------------------------
 cd ${projdir}/${resdir}
-[[ ! -d qa_bet ]] && mkdir qa_bet
+[[ ! -d qc_bet ]] && mkdir qc_bet
 lower=$(${FSLDIR}/bin/fslstats nodif_brain -P 1)
 upper=$(${FSLDIR}/bin/fslstats nodif_brain -P 90)
-overlay 1 0 nodif -a nodif_brain ${lower} ${upper} qa_bet/qa_bet
-cd qa_bet
-slicer qa_bet -s 2 -S 2 1200 qa_bet_ax.png
+${FSLDIR}/bin/overlay 1 0 nodif -a nodif_brain ${lower} ${upper} qc_bet/qc_bet
+cd qc_bet
+${FSLDIR}/bin/slicer qc_bet -s 2 -S 2 1200 qc_bet_ax.png
 
-dim2=$(fslval qa_bet dim2)
-nsag=$(( ${dim2} - 20 ))
-for (( slice=19; slice <= ${nsag}; slice+=2 )); do
+# Get screenshots for the middle 2/3
+#---------------------------------------
+dim2=$(${FSLDIR}/bin/fslval qc_bet dim2)
+third=$(( ${dim2} / 3 ))
+nsag=$(( ${dim2} - ${third} ))
+for (( slice=${third}; slice <= ${nsag}; slice+=2 )); do
     fname=slice_$(printf %0.3i ${slice}).png
-    slicer qa_bet -s 2 -x -${slice} ${fname}
+    ${FSLDIR}/bin/slicer qc_bet -s 2 -x -${slice} ${fname}
 done
 imsize=$(identify -format "%wx%h" ${fname})
 montage -geometry ${imsize} \
     slice_*.png \
-    qa_bet_sag.png
+    qc_bet_sag.png
 rm slice_*.png
-
-# Eddy QA
-#-------------------------------------------------------------------------------
-cd ${projdir}/${resdir}
-[[ -d eddy/dwi_eddy.qc ]] && rm -r eddy/dwi_eddy.qc
-eddy_quad eddy/dwi_eddy -idx index.txt -par acqparams.txt -m nodif_brain_mask -b bvals
-
-# tSNR
-#-------------------------------------------------------------------------------
-#fslmaths data -Tmean mean
-#fslmaths data -Tstd std
-#fslmaths mean -div std tsnr
-#fslmaths tsnr -mas nodif_brain_mask tsnr_mask
-#echo $(fslstats tsnr_mask -l 0 -M) >> tsnr.txt

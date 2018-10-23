@@ -26,7 +26,8 @@ usage() {
          Intensity threshold for "bet" (default: 0.5)
 
      --rerun
-         Include if you are re-running; will re-do "bet" and "eddy"
+         Include if you want to re-run "bet"; will skip DICOM extraction and
+         conversion to NIfTI
 
      --long [SESSION]
          If it's a longitudinal study, specify the session label
@@ -71,7 +72,7 @@ while true; do
     shift
 done
 
-source $(dirname $0)/fsl_dti_vars.sh
+source $(dirname $0)/dti_vars.sh
 
 #-------------------------------------------------------------------------------
 # Extract and convert DICOMs, if necessary
@@ -80,11 +81,13 @@ if [[ ${rerun} -eq 0 ]]; then
     mkdir -p ${rawdir} ${resdir}
     cd ${projdir}/${srcdir}
 
-    # Extract first file, determine Manufacturer
+    # Extract first file, determine Manufacturer,
+    # then extract entire archive
     #-------------------------------------------------------
     firstfile=$(tar tf ${target}_dicom.tar.gz | grep -v '/$' | head -1)
     tar xf ${target}_dicom.tar.gz ${firstfile} --xform='s#^.+/##x'
     manuf=$(dcmdump +P 0008,0070 $(basename ${firstfile}) | cut -d"[" -f2 | cut -d"]" -f1)
+    rm $(basename ${firstfile})
 
     mkdir tmp
     if [[ ${manuf} == *"Philips"* ]]; then
@@ -96,19 +99,18 @@ if [[ ${rerun} -eq 0 ]]; then
 
     # Convert DICOMs to NIfTI
     #-------------------------------------------------------
-    dcmconv=$(which dcm2niix)
+    dcmconv=$(type -P dcm2niix)
     ${dcmconv} -z i -b y -f ${target} -o . tmp
     rm -r tmp
 
-    cp ${target}.bvec ${projdir}/${resdir}/bvecs.norot
+    # Copy files to results directory; average the b0's
+    #-------------------------------------------------------
     lowb=$(awk '{for(i=1;i<=NF;i++){if($i==0)x[i]=i}}END{for(i in x){print x[i] - 1}}' ${target}.bval)
-    cp ${target}.bval ${projdir}/${resdir}/bvals
-
-    reptime=$(grep Repetition ${target}.json | cut -d: -f2 | sed 's/,//')
-    manuf=$(grep Manufacturer\" ${target}.json)
     mv ${target}.{bvec,bval,json,nii.gz} ${projdir}/${rawdir}/
     cd ${projdir}/${resdir}
-    ln -s ${projdir}/${rawdir}/${target}.nii.gz dwi_orig.nii.gz
+    ln ${projdir}/${rawdir}/${target}.bval bvals
+    ln ${projdir}/${rawdir}/${target}.bvec bvecs.norot
+    ln ${projdir}/${rawdir}/${target}.nii.gz dwi_orig.nii.gz
 
     ct=1
     for i in ${lowb}; do
@@ -119,60 +121,8 @@ if [[ ${rerun} -eq 0 ]]; then
     rm lowb[[:digit:]]*
     fslmaths lowb -Tmean nodif
 
-    # Setup for "eddy"
-    mkdir -p eddy
-    printf "0 1 0 0.0646" > acqparams.txt
-    nvols=$(fslnvols dwi_orig)
-    indx=""
-    for ((i=1; i<=${nvols}; i+=1)); do indx="$indx 1"; done
-    echo $indx > index.txt
-
-    # For slice-to-volume correction
-    nslices=$(fslval dwi_orig dim3)
-    mp=$(expr ${nslices} / 4)   # Max. recommended by Jesper
-
-    if [[ ${manuf} == "Philips" ]]; then
-        # For the TBI stress study, DWI is acquired sequentially ("single package default")
-        timediff=$(echo "${reptime} / ${nslices}" | bc -l)
-        for ((i=0; i<${nslices}; i++)); do
-            echo "$i * ${timediff}" | bc -l >> slspec.txt
-        done
-    fi
-
 else
     cd ${projdir}/${resdir}
 fi
 
 ${FSLDIR}/bin/bet nodif{,_brain} -m -R -f ${thresh}
-
-#-------------------------------------------------------------------------------
-# Run eddy
-#-------------------------------------------------------------------------------
-export SGE_ROOT=''
-echo -e '\n Running "eddy"!'
-eddy_cuda \ #openmp \
-    --imain=dwi_orig \
-    --mask=nodif_brain_mask \
-    --index=index.txt \
-    --acqp=acqparams.txt \
-    --bvecs=bvecs.norot \
-    --bvals=bvals \
-    --repol \
-    --mporder=${mp} \
-    --slspec=slspec.txt \
-    --residuals \
-    --cnr_maps \
-    --out=eddy/dwi_eddy
-ln -s eddy/dwi_eddy.nii.gz data.nii.gz #TODO change to outlier free?
-ln -s eddy/dwi_eddy.eddy_rotated_bvecs bvecs
-
-#-------------------------------------------------------------------------------
-# Run dtifit
-#-------------------------------------------------------------------------------
-mkdir -p dtifit
-dtifit -k data -m nodif_brain_mask -o dtifit/dtifit \
-    -r bvecs -b bvals --sse --save_tensor
-fslmaths dtifit/dtifit_L2 \
-    -add dtifit/dtifit_L3 \
-    -div 2 \
-    dtifit/dtifit_RD

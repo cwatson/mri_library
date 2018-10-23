@@ -18,7 +18,7 @@ proposals, but nothing has found consistent use (to my knowledge).
     * [Software](#software)
     * [Scanner vendor issues](#scanner-vendor-issues)
         * [GE](#ge)
-* [Steps](#steps)
+* [Processing Steps](#processing-steps)
 * [Variables](#variables)
 
 <!-- vim-markdown-toc -->
@@ -59,7 +59,8 @@ In addition to good-quality T1-weighted and DWI data, some software requirements
   (for [eddy_cuda](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/eddy/UsersGuide) and
   [bedpostx_gpu](https://users.fmrib.ox.ac.uk/~moisesf/Bedpostx_GPU/))
     * If you don't have this, you can use `eddy_openmp` and the regular `bedpostx` instead;
-        you'll have to change the code accordingly
+        you'll have to change the code accordingly.
+    * To run `bedpostx` on a *SLURM* system without a GPU, you will need the [launcher](https://github.com/TACC/launcher) utility
 
 ## Scanner vendor issues
 It seems that *GE* and *Philips* do not record the `SliceTiming` information
@@ -79,11 +80,21 @@ which references some more *DICOM* tags, and links to a [Github repo](https://gi
 that may be able to find out this information.
 
 
-# Steps
-The scripts will perform the following steps. *Freesurfer*'s `recon-all` should be run before this.
-1. Extract *DICOM* files and convert using `dcm2niix`.
-    a. Move the `NIfTI`, `bvecs`, `bvals`, and `json` files to under `rawdata`
-2.
+# Processing Steps
+The scripts will perform the following steps. *Freesurfer*'s `recon-all` should be run before this (or before step 5, at least).
+1. Run `dti_dicom2nift_bet.sh` to extract *DICOM* files and convert to *NIfTI* using `dcm2niix`.
+    1. Moves the `NIfTI`, `bvecs`, `bvals`, and `json` files to under `rawdata`.
+2. Skullstrip the data using `bet` (same script as in #1).
+3. Check the quality by running `dti_qc_bet.sh` and viewing the images.
+    1. Re-run if the skullstrip wasn't acceptable; change the `bet` threshold by passing the `-t` or `--threshold` argument.
+4. Run `eddy` via `dti_eddy.sh`.
+5. Run `eddyqc` via `dti_qc_eddy.sh`.
+6. If you don't have a GPU but *do* have a *SLURM* scheduler, run *BEDPOSTX* via `dti_bedpostx_run.sh`.
+    1. You will then also need to run `dti_bedpostx_postproc.sh`.
+    2. If you do have a GPU, you can run `bedpostx_gpu` yourself.
+    3. If you have a system with an *SGE* scheduler, you can run `bedpostx` normally.
+7. Run the setup script `dti_probrackx2_setup.sh`.
+8. Check the quality of the registration/parcellation by running `dti_qc_probtrackx2.sh`.
 
 # Variables
 These variables are created in `fsl_dti_vars.sh` and are primarily used (by `fsl_dti_preproc.sh`)

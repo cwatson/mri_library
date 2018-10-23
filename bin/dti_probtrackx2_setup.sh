@@ -69,7 +69,7 @@ done
 atlarray=(dk.scgm dkt.scgm destrieux.scgm)
 [[ ! "${atlarray[@]}" =~ "${atlas}" ]] && echo -e "\nAtlas ${atlas} is invalid!\n" && exit 2
 
-source $(dirname $0)/fsl_dti_vars.sh
+source $(dirname $0)/dti_vars.sh
 
 # Set directory variables
 #-------------------------------------------------------------------------------
