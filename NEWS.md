@@ -8,6 +8,9 @@
 * Added `${FSLDIR}/bin` in front of some FSL-based programs
 * Changed the code to get `scriptdir` to work across more systems (e.g., `realpath` isn't available on *CentOS 6*)
 
+# Other
+* Added an *R* script, `slice_times.R`, to calculate the slice timing for interleaved acquisitions
+    * Assume sequential acqusition for both *Philips* and *GE*
 
 # 2018-10-23
 

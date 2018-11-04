@@ -107,13 +107,20 @@ fi
 if [[ ! -f ${projdir}/${slspec} ]]; then
     manuf=$(grep Manufacturer\" ${projdir}/${rawdir}/${target}.json)
     reptime=$(grep Repetition ${projdir}/${rawdir}/${target}.json | cut -d: -f2 | sed 's/,//')
-    if [[ ${manuf} == *"Philips"* ]]; then
-        # For the TBI stress study, DWI is acquired sequentially ("single package default")
-        timediff=$(echo "${reptime} / ${nslices}" | bc -l)
-        for ((i=0; i<${nslices}; i++)); do
-            echo "$i * ${timediff}" | bc -l >> eddy/slspec.txt
-        done
-    fi
+    case ${manuf} in
+        *Philips*|*GE*)
+            # For the TBI stress study, DWI is acquired sequentially ("single package default")
+            timediff=$(echo "${reptime} / ${nslices}" | bc -l)
+            for ((i=0; i<${nslices}; i++)); do
+                echo "$i * ${timediff}" | bc -l >> eddy/slspec.txt
+            done
+            ;;
+        *)
+            # Assume interleaved 1, 3, 5, ..., 2, 4, 6, ...
+            Rscript --vanilla -e "source('${scriptdir}/../R/slice_times.R'); slice_times(${nslices}, ${reptime})"
+            mv slspec.txt eddy
+            ;;
+    esac
 else
     ln ${projdir}/${slspec} eddy/slspec.txt
 fi
