@@ -17,6 +17,6 @@ check_sw jo jo 5
 check_sw dcmdump "the 'DCMTK' library" 6
 
 # Check for FSL
-check_sw fSl "the latest version of 'FSL'" 7
+check_sw fsl "the latest version of 'FSL'" 7
 
 echo "$(tput bold)$(tput setaf 2)All software present"
