@@ -49,13 +49,14 @@ while true; do
     shift
 done
 
-source $(dirname $0)/dti_vars.sh
+source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 
 # eddy QC
 #-------------------------------------------------------------------------------
 cd ${projdir}/${resdir}
 [[ -d eddy/dwi_eddy.qc ]] && rm -r eddy/dwi_eddy.qc
-eddy_quad eddy/dwi_eddy -idx eddy/index.txt -par eddy/acqparams.txt -m nodif_brain_mask -b bvals
+${FSLDIR}/bin/eddy_quad eddy/dwi_eddy \
+    -idx eddy/index.txt -par eddy/acqparams.txt -m nodif_brain_mask -b bvals
 
 # tSNR
 #-------------------------------------------------------------------------------

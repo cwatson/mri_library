@@ -1,3 +1,14 @@
+# 2018-11-04
+
+## General updates
+* Added a `LICENSE` file; using *Apache version 2.0*
+* Added a script to hold "utility" functions, called `utilities.sh`
+* Put error checking into its own script, `check_dependencies.sh`
+* Changed the exit codes for non-trivial errors
+* Added `${FSLDIR}/bin` in front of some FSL-based programs
+* Changed the code to get `scriptdir` to work across more systems (e.g., `realpath` isn't available on *CentOS 6*)
+
+
 # 2018-10-23
 
 * `dti_dicom2nifti_bet` now allows the specific input of the *DICOM* `.tar.gz` file, via the option `--tgz`.

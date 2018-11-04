@@ -67,16 +67,18 @@ while true; do
 done
 
 atlarray=(dk.scgm dkt.scgm destrieux.scgm)
-[[ ! "${atlarray[@]}" =~ "${atlas}" ]] && echo -e "\nAtlas ${atlas} is invalid!\n" && exit 2
+[[ ! "${atlarray[@]}" =~ "${atlas}" ]] && echo -e "\nAtlas ${atlas} is invalid!\n" && exit 9
 
-source $(dirname $0)/dti_vars.sh
+source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 
 # Set directory variables
 #-------------------------------------------------------------------------------
+#TODO check if correct; might have to change to what's done in bpx scripts
 dti_dir=${projdir}/${resdir}
 SUBJECTS_DIR=${projdir}/freesurfer
 
-[[ ! -d ${dti_dir} ]] && echo "Subject directory ${dti_dir} is invalid!" && exit 3
+#TODO next line can prob be removed
+[[ ! -d ${dti_dir} ]] && echo "Subject directory ${dti_dir} is invalid!" && exit 10
 ln -s ${dti_dir}/{nodif.nii.gz,lowb.nii.gz}
 ln -s ${dti_dir}/{nodif_brain_mask.nii.gz,lowb_brain_mask.nii.gz}
 
@@ -146,7 +148,7 @@ fi
 #-------------------------------------------------------------------------------
 
 labelfile=${HOME}/Dropbox/dnl_library/bin/fsl/${atlas}.txt
-[[ ! -e ${labelfile} ]] && echo "Label file missing!" && exit 4
+[[ ! -e ${labelfile} ]] && echo "Label file missing!" && exit 11
 mkdir -p ${seed_dir} && cd ${seed_dir}
 while read line; do
     roiID=$(echo ${line} | awk '{print $1}' -)

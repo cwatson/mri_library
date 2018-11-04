@@ -59,9 +59,9 @@ TEMP=$(getopt -o hs: --long help,subject:,long:,acq:,params:,index:,mp:,slspec: 
 eval set -- "${TEMP}"
 
 long=0
-mp=0
 sess=''
 acq=''
+mp=0
 while true; do
     case "$1" in
         -h|--help)      usage && exit ;;
@@ -77,7 +77,7 @@ while true; do
     shift
 done
 
-source $(dirname $0)/dti_vars.sh
+source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 cd ${projdir}/${resdir}
 
 #-------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ else
 fi
 
 if [[ ! -f ${projdir}/${index} ]]; then
-    nvols=$(fslnvols dwi_orig)
+    nvols=$(${FSLDIR}/bin/fslnvols dwi_orig)
     indx=""
     for ((i=1; i<=${nvols}; i+=1)); do indx="$indx 1"; done
     echo $indx > eddy/index.txt
@@ -100,7 +100,7 @@ else
 fi
 
 # For slice-to-volume correction
-nslices=$(fslval dwi_orig dim3)
+nslices=$(${FSLDIR}/bin/fslval dwi_orig dim3)
 if [[ ${mp} -eq 0 ]]; then
     mp=$(expr ${nslices} / 4)   # Max. recommended by Jesper
 fi
@@ -123,7 +123,7 @@ fi
 #-------------------------------------------------------------------------------
 export SGE_ROOT=''
 echo -e '\n Running "eddy"!'
-eddy_cuda \
+${FSLDIR}/bin/eddy_cuda \
     --imain=dwi_orig \
     --mask=nodif_brain_mask \
     --index=eddy/index.txt \
@@ -143,9 +143,9 @@ ln eddy/dwi_eddy.eddy_rotated_bvecs bvecs
 # Run dtifit
 #-------------------------------------------------------------------------------
 mkdir -p dtifit
-dtifit -k data -m nodif_brain_mask -o dtifit/dtifit \
+${FSLDIR}/bin/dtifit -k data -m nodif_brain_mask -o dtifit/dtifit \
     -r bvecs -b bvals --sse --save_tensor
-fslmaths dtifit/dtifit_L2 \
+${FSLDIR}/bin/fslmaths dtifit/dtifit_L2 \
     -add dtifit/dtifit_L3 \
     -div 2 \
     dtifit/dtifit_RD

@@ -55,7 +55,7 @@ while true; do
     shift
 done
 
-source $(dirname $0)/dti_vars.sh
+source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 
 # bet QC
 #-------------------------------------------------------------------------------

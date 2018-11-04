@@ -74,7 +74,7 @@ opts="--nf=$nfibres --fudge=$fudge --bi=$burnin --nj=$njumps --se=$sampleevery -
 if [[ -n ${scriptdir} ]]; then
     source ${scriptdir}/dti_vars.sh
 else
-    source $(dirname $0)/dti_vars.sh
+    source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 fi
 subjdir=$(realpath ${resdir/\/$/})
 bpxdir=${subjdir}.bedpostX

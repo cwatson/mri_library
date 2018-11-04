@@ -10,6 +10,9 @@ usage() {
 !
 }
 
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+source ${scriptdir}/check_dependencies.sh
+
 projdir=${PWD}
 target=sub-${subj}
 rawdir=rawdata/${target}/
@@ -28,4 +31,4 @@ resdir=${rawdir/rawdata/tractography}
 
 [[ ! -d ${srcdir} ]] && mkdir -p ${srcdir}
 
-export projdir target rawdir srcdir resdir
+export projdir target rawdir srcdir resdir scriptdir

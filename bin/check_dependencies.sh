@@ -1,0 +1,22 @@
+#! /bin/bash
+# Check for any software dependencies
+# Christopher G. Watson, 2018-11-03
+
+source utilities.sh
+
+# Check for dcm2niix
+check_sw dcm2niix dcm2niix 3
+
+# Check for ImageMagick
+check_sw convert "the 'ImageMagick' suite" 4
+
+# Check for jo
+check_sw jo jo 5
+
+# Check for dcmtk tools
+check_sw dcmdump "the 'DCMTK' library" 6
+
+# Check for FSL
+check_sw fSl "the latest version of 'FSL'" 7
+
+echo "$(tput bold)$(tput setaf 2)All software present"

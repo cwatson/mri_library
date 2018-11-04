@@ -78,7 +78,7 @@ while true; do
     shift
 done
 
-source $(dirname $0)/dti_vars.sh
+source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 
 #-------------------------------------------------------------------------------
 # Extract and convert DICOMs, if necessary
@@ -96,7 +96,7 @@ if [[ ${rerun} -eq 0 ]]; then
         else
             echo "Input file ${tgz} is invalid!"
             echo "Please make sure to use the full path to the file."
-            exit 2
+            exit 8
         fi
     fi
     firstfile=$(tar tf ${target}_dicom.tar.gz | grep -v '/$' | head -1)
@@ -129,11 +129,11 @@ if [[ ${rerun} -eq 0 ]]; then
 
     ct=1
     for i in ${lowb}; do
-        fslroi dwi_orig lowb${ct} ${i} 1
+        ${FSLDIR}/bin/fslroi dwi_orig lowb${ct} ${i} 1
         let "ct += 1"
     done
-    fslmerge -t lowb lowb[[:digit:]]*
-    fslmaths lowb -Tmean nodif
+    ${FSLDIR}/bin/fslmerge -t lowb lowb[[:digit:]]*
+    ${FSLDIR}/bin/fslmaths lowb -Tmean nodif
     rm lowb*
 
 else

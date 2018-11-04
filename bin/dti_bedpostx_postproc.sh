@@ -23,7 +23,7 @@ done
 if [[ -n ${scriptdir} ]]; then
     source ${scriptdir}/dti_vars.sh
 else
-    source $(dirname $0)/dti_vars.sh
+    source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 fi
 subjdir=$(realpath ${resdir/\/$/})
 bpx=${subjdir}.bedpostX
