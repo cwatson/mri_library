@@ -111,15 +111,18 @@ if [[ ! -f ${projdir}/${slspec} ]]; then
     case ${manuf} in
         *Philips*|*GE*)
             # For the TBI stress study, DWI is acquired sequentially ("single package default")
-            timediff=$(echo "${reptime} / ${nslices}" | bc -l)
-            for ((i=0; i<${nslices}; i++)); do
-                echo "$i * ${timediff}" | bc -l >> eddy/slspec.txt
+            for i in $(seq 0 $((${nslices}-1))); do
+                echo $i >> eddy/slspec.txt
             done
             ;;
         *)
             # Assume interleaved 1, 3, 5, ..., 2, 4, 6, ...
-            Rscript --vanilla -e "source('${scriptdir}/../R/slice_times.R'); slice_times(${nslices}, ${reptime})"
-            mv slspec.txt eddy
+            for i in $(seq 0 2 $((${nslices}-1))); do
+                echo $i >> eddy/slspec.txt
+            done
+            for i in $(seq 1 2 $((${nslices}-1))); do
+                echo $i >> eddy/slspec.txt
+            done
             ;;
     esac
 else
