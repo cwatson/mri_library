@@ -5,7 +5,7 @@ set -a
 usage() {
     cat << !
 
- Setup and run `eddy` on DTI data. If you do not have "acqparams.txt",
+ Setup and run 'eddy' on DTI data. If you do not have "acqparams.txt",
  "index.txt", or "slspec.txt" files in ${resdir}, then generic ones will be
  created (with values from the FSL wiki). If you have files that apply to all
  study subjects, you can pass those in via function arguments; these should be
@@ -32,17 +32,17 @@ usage() {
             sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
 
      --params [FILE]
-         A text file that will serve as the `acqp` argument to `eddy`
+         A text file that will serve as the 'acqp' argument to 'eddy'
 
      --index [FILE]
-         A text file that will serve as the `index` argument to `eddy`
+         A text file that will serve as the 'index' argument to 'eddy'
 
      --mp [MPORDER]
          An integer value for the temporal order of movement. By default, it
          will choose "# slices / 4" (the recommended maximum by Jesper)
 
      --slspec [FILE]
-         A text file that will serve as the `slspec` argument to `eddy`
+         A text file that will serve as the 'slspec' argument to 'eddy'
 
  EXAMPLES:
      $(basename $0) -s SP7180 --long 01 --acq iso --mp 6 --slspec my_slspec.txt
