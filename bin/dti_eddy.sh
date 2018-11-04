@@ -104,6 +104,7 @@ nslices=$(${FSLDIR}/bin/fslval dwi_orig dim3)
 if [[ ${mp} -eq 0 ]]; then
     mp=$(expr ${nslices} / 4)   # Max. recommended by Jesper
 fi
+echo "MP is: $mp"
 if [[ ! -f ${projdir}/${slspec} ]]; then
     manuf=$(grep Manufacturer\" ${projdir}/${rawdir}/${target}.json)
     reptime=$(grep Repetition ${projdir}/${rawdir}/${target}.json | cut -d: -f2 | sed 's/,//')
