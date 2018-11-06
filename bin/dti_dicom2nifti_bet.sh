@@ -96,7 +96,7 @@ if [[ ${rerun} -eq 0 ]]; then
         else
             echo "Input file ${tgz} is invalid!"
             echo "Please make sure to use the full path to the file."
-            exit 8
+            exit 9
         fi
     fi
     firstfile=$(tar tf ${target}_dicom.tar.gz | grep -v '/$' | head -1)
@@ -141,3 +141,11 @@ else
 fi
 
 ${FSLDIR}/bin/bet nodif{,_brain} -m -R -f ${thresh}
+
+# Store system and software information in JSON file
+log_system_info
+for sw in dcmtk jo jq fsl; do
+    log_sw_info ${sw}
+done
+jo -d. bet.f=${thresh} | jq -s add preproc.json - > tmp.json
+mv tmp.json preproc.json

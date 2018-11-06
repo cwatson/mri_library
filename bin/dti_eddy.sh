@@ -104,10 +104,9 @@ nslices=$(${FSLDIR}/bin/fslval dwi_orig dim3)
 if [[ ${mp} -eq 0 ]]; then
     mp=$(expr ${nslices} / 4)   # Max. recommended by Jesper
 fi
-echo "MP is: $mp"
+
 if [[ ! -f ${projdir}/${slspec} ]]; then
-    manuf=$(grep Manufacturer\" ${projdir}/${rawdir}/${target}.json)
-    reptime=$(grep Repetition ${projdir}/${rawdir}/${target}.json | cut -d: -f2 | sed 's/,//')
+    manuf=$(jq .Manufacturer ${projdir}/${rawdir}/${target}.json)
     case ${manuf} in
         *Philips*|*GE*)
             # For the TBI stress study, DWI is acquired sequentially ("single package default")
@@ -149,6 +148,9 @@ ${FSLDIR}/bin/eddy_cuda \
     --out=eddy/dwi_eddy
 ln eddy/dwi_eddy.nii.gz data.nii.gz #TODO change to outlier free?
 ln eddy/dwi_eddy.eddy_rotated_bvecs bvecs
+jo eddy=$(jo mporder=${mp} repol=true residuals=true cnr_maps=true) | \
+    jq -s add preproc.json - > tmp.json
+mv tmp.json preproc.json
 
 #-------------------------------------------------------------------------------
 # Run dtifit

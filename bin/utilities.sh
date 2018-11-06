@@ -25,5 +25,70 @@ check_sw() {
     fi
 }
 
+# Log software version information in a JSON file
+#
+# $1 - the name of the binary
+# $2 - the JSON file to add to, if it exists
+#
+# Examples
+#
+#    log_sw_info dcmtk preproc.json
+
+log_sw_info() {
+    if [[ $# -lt 1 ]]; then
+        echo "Please supply the name of a binary/program!"
+        exit 10
+    elif [[ $# -lt 2 ]]; then
+        outfile=preproc.json
+        if [[ ! -f ${outfile} ]]; then
+            touch ${outfile}
+        fi
+    else
+        outfile=${2}
+    fi
+    case ${1} in
+        dcmtk)  ver=$(dcmdump --version | awk '{print $3,$4}' | head -1) ;;
+        jo)     ver=$(jo -v | awk '{print $2}') ;;
+        jq)
+            jqver=$(jq -V 2>&1)
+            case ${jqver} in
+                *1.[0-3]*)  ver=$(echo ${jqver} | awk '{print $3}') ;;
+                *)          ver=$(echo ${jqver} | awk -F- '{print $2}') ;;
+            esac
+            ;;
+        fsl)    ver=$(cat ${FSLDIR}/etc/fslversion) ;;
+    esac
+
+    jo -d. ${1}.version="${ver}" | jq -s add ${outfile} - > tmp.json
+    mv tmp.json ${outfile}
+}
+
+# Log system information in a JSON file
+#
+# If you would like to add to an existing file, supply it as an argument.
+# Otherwise, the information will be stored in "preproc.json".
+#
+# $1 - the JSON file to add to, if it exists
+#
+# Examples
+#
+#    log_system_info preproc.json
+log_system_info() {
+    if [[ $# -lt 1 ]]; then
+        outfile=preproc.json
+        if [[ ! -f ${outfile} ]]; then
+            touch ${outfile}
+        fi
+    else
+        outfile=${1}
+    fi
+    jo -d. system.system="$(uname)" \
+        system.kernel.version="$(uname -v)" \
+        system.kernel.release="$(uname -r)" \
+        system.hardware="$(uname -m)" | \
+        jq -s add ${outfile} - > tmp.json
+    mv tmp.json ${outfile}
+}
+
 export myred mygreen myyellow
-export -f check_sw
+export -f check_sw log_sw_info log_system_info

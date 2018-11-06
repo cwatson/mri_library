@@ -24,6 +24,7 @@ proposals, nothing has found consistent use (to my knowledge). So I place some o
     * [dcmtk](#dcmtk)
     * [dcm2niix](#dcm2niix)
     * [jo](#jo)
+    * [jq](#jq)
 * [Processing Steps](#processing-steps)
     * [DWI](#dwi)
 * [Variables](#variables)
@@ -63,6 +64,7 @@ In addition to good-quality T1-weighted and DWI data, some software requirements
 * [`dcmtk`](https://dicom.offis.de/dcmtk.php.en) for reading from the *DICOM* headers
 * [`jo`](https://github.co/jpmens/jo) for writing out *JSON* files containing the parameters used for each tool.
     For example, it will record the `-f` value used with `bet`.
+* [`jq`](https://stedolan.github.io/jq) also processes *JSON* files.
 * A recent version of [`dcm2niix`](https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage)
     * The version I used at the time of writing is `v1.0.20181013  GCC4.8.5 (64-bit Linux)`
 * [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki) version >= *6.0.0*
@@ -132,6 +134,11 @@ make check
 make install
 ```
 If you are running `CentOS 6`, you will have to install the `autoconf268` package, and then call `autoreconf268` instead.
+
+## jq
+This should be in repositories for all major Linux OS's.
+For both *CentOS 6* and *CentOS 7*, it is in the `epel` repository,
+with versions `v1.3.2` and `v1.5.1`, respectively.
 
 # Processing Steps
 ## DWI

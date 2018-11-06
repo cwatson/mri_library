@@ -19,4 +19,7 @@ check_sw dcmdump "the 'DCMTK' library" 6
 # Check for FSL
 check_sw fsl "the latest version of 'FSL'" 7
 
-echo "$(tput bold)$(tput setaf 2)All software present"
+# Check for jq
+check_sw jq jq 8
+
+tput srg0

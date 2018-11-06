@@ -1,3 +1,7 @@
+# 2018-11-05
+
+* Added functions to log software, system, and parameter information in `json` files, using `jq` and `jo`
+
 # 2018-11-04
 
 ## General updates
