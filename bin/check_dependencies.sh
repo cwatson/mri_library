@@ -22,4 +22,4 @@ check_sw fsl "the latest version of 'FSL'" 7
 # Check for jq
 check_sw jq jq 8
 
-tput srg0
+tput sgr0
