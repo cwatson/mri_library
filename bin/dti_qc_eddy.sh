@@ -5,7 +5,7 @@ set -a
 usage() {
     cat << !
 
- Perform QC on `eddy` results using the new `eddyqc` tool.
+ Perform QC on "eddy" results using the new "eddyqc" tool.
 
  USAGE: $(basename $0) [OPTIONS]
 

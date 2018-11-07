@@ -1,3 +1,7 @@
+# 2018-11-06
+* Use `cut` to get correct `jq` version info
+* Remove backticks from `usage` functions
+
 # 2018-11-05
 
 * Added functions to log software, system, and parameter information in `json` files, using `jq` and `jo`

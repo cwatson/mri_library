@@ -53,7 +53,7 @@ log_sw_info() {
             jqver=$(jq -V 2>&1)
             case ${jqver} in
                 *1.[0-3]*)  ver=$(echo ${jqver} | awk '{print $3}') ;;
-                *)          ver=$(echo ${jqver} | awk -F- '{print $2}') ;;
+                *)          ver=$(echo ${jqver} | cut -d- -f2-) ;;
             esac
             ;;
         fsl)    ver=$(cat ${FSLDIR}/etc/fslversion) ;;

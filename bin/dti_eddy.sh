@@ -83,6 +83,11 @@ cd ${projdir}/${resdir}
 #-------------------------------------------------------------------------------
 # Setup eddy
 #-------------------------------------------------------------------------------
+if [[ -d eddy ]]; then
+    echo "'eddy' has already been run!"
+    echo "Please remove directory if you wish to re-run."
+    exit 10
+fi
 mkdir -p eddy
 if [[ ! -f ${projdir}/${params} ]]; then
     printf "0 1 0 0.0646" > eddy/acqparams.txt

@@ -38,8 +38,8 @@ usage() {
             sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
 
      --tgz [TGZ FILE]
-         You can pass a specific `.tar.gz` file containing the DICOM's if you
-         have not already set-up and placed it in the `sourcedata` directory
+         You can pass a specific ".tar.gz" file containing the DICOM's if you
+         have not already set-up and placed it in the "sourcedata" directory
          tree. This will rename it to follow the BIDS spec.
 
  EXAMPLES:
