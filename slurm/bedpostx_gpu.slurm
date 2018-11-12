@@ -5,11 +5,41 @@
 #SBATCH -t 00:30:00            # Run time (hh:mm:ss)
 #SBATCH --mail-type=end
 #SBATCH --mail-user=Christopher.G.Watson@uth.tmc.edu
-module load cuda/6.5
-export FSLMACHTYPE=linux_64-gcc4.4
-export FSLDEVDIR=/work/04484/cgwatson/apps/fsl/current
-export CUDA=/opt/apps/cuda/6.5
-export COMPILE_GPU=1
-export FSLCONFDIR=/work/04484/cgwatson/apps/fsl/current/config
+#-----------------------------------------------------------
+set -a
 
-${WORK}/apps/fsl/current/bin/bedpostx_gpu ${1}/dti2
+usage() {
+    cat << !
+
+ USAGE:
+    $(basename $0) -s|--subject SUBJECT [--long SESSION] [-h|--help]
+
+!
+}
+
+module load cuda/9.0
+export FSLMACHTYPE=linux_64-gcc6.3
+export FSLDIR=${STOCKYARD}/stampede2/apps/fsl/current
+export FSLDEVDIR=${FSLDIR}
+export CUDA=/opt/apps/cuda/9.0
+export COMPILE_GPU=1
+export FSLCONFDIR=${FSLDIR}/config
+
+# Argument checking
+#-------------------------------------------------------------------------------
+TEMP=$(getopt -o hs: --long help,subject:,long: -- "$@")
+[[ $? -ne 0 ]] && usage && exit
+eval set -- "${TEMP}"
+
+long=0
+sess=''
+while true; do
+    case "$1" in
+        -h|--help)      usage && exit ;;
+        -s|--subject)   subj="$2"; shift ;;
+        --long)         long=1; sess="$2"; shift ;;
+    esac
+done
+source ${HOME}/code/mri_library/bin/dti_vars.sh
+
+${FSLDIR}/bin/bedpostx_gpu ${projdir}/${resdir}

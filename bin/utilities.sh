@@ -2,10 +2,6 @@
 # Some utility functions
 # Christopher G. Watson, 2018-11-03
 
-myred=$(tput setaf 1)
-mygreen=$(tput setaf 2)
-myyellow=$(tput setaf 3)
-
 # Check software; print error if absent
 #
 # $1 - the name of the binary to search for
@@ -19,7 +15,7 @@ myyellow=$(tput setaf 3)
 check_sw() {
     has_sw=$(type -P ${1})
     if [[ $? -ne 0 ]]; then
-        echo -ne "$(tput bold)${myred}\nERROR: "
+        echo -ne "${myred}\nERROR: "
         echo "Please install ${2}!"
         exit ${3}
     fi
@@ -90,5 +86,4 @@ log_system_info() {
     mv tmp.json ${outfile}
 }
 
-export myred mygreen myyellow
 export -f check_sw log_sw_info log_system_info

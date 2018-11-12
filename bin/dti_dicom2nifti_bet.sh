@@ -1,48 +1,48 @@
 #! /bin/bash
 # Chris Watson, 2017-02-28
 set -a
+source $(dirname "${BASH_SOURCE[0]}")/globals.sh
 
 usage() {
     cat << !
 
- Preprocess DTI data using FSL's tools, including the new "eddy" tool.
- This should be run from the base project directory. The
- script expects to find "sourcedata/" (DICOM's) directories, which should be
- BIDS compliant.
+ Extract DICOM files and convert to NIfTI. Run brain extraction, and then create
+ some screenshots for QC purposes. Finally, log system and software version
+ information into a ${myblue}.json$(tput sgr0) file.
 
- USAGE:
-    $(basename $0) [-s SUBJECT] [-t THRESH] [--rerun]
-        [--long SESSION] [--acq LABEL] [--tgz FILE]
+ ${myyellow}USAGE:${mygreen}
+    $(basename $0) -s|--subject SUBJECT [-t|--threshold THRESH]
+        [--rerun] [--long SESSION] [--acq LABEL] [--tgz FILE]
 
- OPTIONS:
-     -h, --help
+ ${myyellow}OPTIONS:
+     ${mymagenta}-h, --help$(tput sgr0)
          Show this message
 
-     -s, --subject [SUBJECT]
+     ${mymagenta}-s, --subject [SUBJECT]$(tput sgr0)
          Subject ID. This will be the "label" in the directories and filenames,
          as outlined by the BIDS spec.
 
-     -t, --threshold [THRESH]
-         Intensity threshold for "bet" (default: 0.5)
+     ${mymagenta}-t, --threshold [THRESH]$(tput sgr0)
+         Intensity threshold for ${myblue}bet$(tput sgr0) ${mymagenta}[default: 0.5]
 
-     --rerun
-         Include if you want to re-run "bet"; will skip DICOM extraction and
+     ${mymagenta}--rerun$(tput sgr0)
+         Include if you want to re-run ${myblue}bet$(tput sgr0); will skip DICOM extraction and
          conversion to NIfTI
 
-     --long [SESSION]
+     ${mymagenta}--long [SESSION]$(tput sgr0)
          If it's a longitudinal study, specify the session label
 
-     --acq [ACQ LABEL]
+     ${mymagenta}--acq [ACQ LABEL]$(tput sgr0)
          If multiple acquisitions, provide the label. For example, the TBI study
          acquired 2 DTI scans; the acq label for the TBI study would be "iso":
-            sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
+            ${mygreen}sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
 
-     --tgz [TGZ FILE]
-         You can pass a specific ".tar.gz" file containing the DICOM's if you
-         have not already set-up and placed it in the "sourcedata" directory
-         tree. This will rename it to follow the BIDS spec.
+     ${mymagenta}--tgz [TGZ FILE]$(tput sgr0)
+         You can pass a specific ${myblue}.tar.gz$(tput sgr0) file containing the DICOM's if you have
+         not already set-up and placed it in the ${myblue}sourcedata$(tput sgr0) directory tree. This
+         will rename it to follow the BIDS spec.
 
- EXAMPLES:
+ ${myyellow}EXAMPLES:${mygreen}
      $(basename $0) -s SP7104_time1 -t 0.4
      $(basename $0) -s SP7180_time1 --rerun
      $(basename $0) -s SP7180 --long 01 --acq iso
@@ -84,7 +84,7 @@ source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 # Extract and convert DICOMs, if necessary
 #-------------------------------------------------------------------------------
 if [[ ${rerun} -eq 0 ]]; then
-    mkdir -p ${rawdir} ${resdir}
+    mkdir -p ${rawdir} ${resdir}/qc_bet
     cd ${projdir}/${srcdir}
 
     # Extract first file, determine Manufacturer,
@@ -141,6 +141,7 @@ else
 fi
 
 ${FSLDIR}/bin/bet nodif{,_brain} -m -R -f ${thresh}
+source ${scriptdir}/dti_qc_bet.sh
 
 # Store system and software information in JSON file
 log_system_info

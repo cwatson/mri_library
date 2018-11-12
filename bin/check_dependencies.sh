@@ -22,4 +22,7 @@ check_sw fsl "the latest version of 'FSL'" 7
 # Check for jq
 check_sw jq jq 8
 
+# Check for eddyQC
+check_sw eddy_quad eddyQC 9
+
 tput sgr0

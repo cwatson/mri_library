@@ -9,58 +9,11 @@ usage() {
  "overlay" and "slicer" programs from FSL, along with programs from
  "ImageMagick".
 
- USAGE: $(basename $0) [OPTIONS]
-
- OPTIONS:
-     -h, --help
-         Show this message
-
-     -s, --subject [SUBJECT]
-         Subject ID. This will be the "label" as outlined by the BIDS spec
-
-     --long [SESSION]
-         If it's a longitudinal study, specify the session label
-
-     --acq [ACQ LABEL]
-         If multiple acquisitions, provide the label. For example, the TBI study
-         acquired 2 DTI scans; the acq label for the TBI studywould be "iso":
-            sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
-
-
- EXAMPLE:
-     $(basename $0) -s SP7180 --long 01 --acq iso
-
 !
 }
 
-# Argument checking
-#-------------------------------------------------------------------------------
-[[ $# == 0 ]] && usage && exit
-
-TEMP=$(getopt -o hs: --long help,subject:,long:,acq: -- "$@")
-[[ $? -ne 0 ]] && usage && exit 1
-eval set -- "${TEMP}"
-
-long=0
-sess=''
-acq=''
-while true; do
-    case "$1" in
-        -h|--help)      usage && exit ;;
-        -s|--subject)   subj="$2"; shift ;;
-        --long)         long=1; sess="$2"; shift ;;
-        --acq)          acq="$2"; shift ;;
-        * )             break ;;
-    esac
-    shift
-done
-
-source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
-
 # bet QC
 #-------------------------------------------------------------------------------
-cd ${projdir}/${resdir}
-[[ ! -d qc_bet ]] && mkdir qc_bet
 lower=$(${FSLDIR}/bin/fslstats nodif_brain -P 1)
 upper=$(${FSLDIR}/bin/fslstats nodif_brain -P 90)
 ${FSLDIR}/bin/overlay 1 0 nodif -a nodif_brain ${lower} ${upper} qc_bet/qc_bet

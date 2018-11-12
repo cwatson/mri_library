@@ -143,21 +143,42 @@ with versions `v1.3.2` and `v1.5.1`, respectively.
 # Processing Steps
 ## DWI
 The scripts will perform the following steps. *Freesurfer*'s `recon-all` should be run before this (or before step 5, at least).
-1. Run `dti_dicom2nift_bet.sh` to extract *DICOM* files and convert to *NIfTI* using `dcm2niix`.
-    1. Moves the `nii.gz`, `bvecs`, `bvals`, and `json` files to the appropriate subject directory under `rawdata`.
-    2. If there are multiple *b0* volumes, they will be averaged when creating `nodif.nii.gz`
-    3. Skullstrip the data using [`bet`](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/BET/UserGuide) (same script as in #1).
-2. Check the quality by running `dti_qc_bet.sh` and viewing the resultant images.
-    1. Images will be placed in `${projdir}/${resdir}/qc_bet`. See [example images](https://imgur.com/a/rkxkgV4).
-    2. Re-run if the skullstrip wasn't acceptable; change the `bet` threshold by passing the `-t` or `--threshold` argument.
-3. Run `eddy` via `dti_eddy.sh`.
-4. Get `eddy`-specific QC via `dti_qc_eddy.sh` which simply runs [`eddyqc`](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/eddyqc).
-5. If you don't have a GPU but *do* have a *SLURM* scheduler, run *BEDPOSTX* via `dti_bedpostx_run.sh`.
-    1. You will then also need to run `dti_bedpostx_postproc.sh`.
-    2. If you do have a GPU, you can run `bedpostx_gpu` yourself.
-    3. If you have a system with an *SGE* scheduler, you can run `bedpostx` normally.
-6. Run the setup script `dti_probrackx2_setup.sh`.
-7. Check the quality of the registration/parcellation by running `dti_qc_probtrackx2.sh`.
+1. Run `dti_dicom2nift_bet.sh` to extract *DICOM* files and convert to *NIfTI* using `dcm2niix`, skullstrip, and create images for QC purposes.
+    <ol type="a">
+    <li>Moves the <code>nii.gz</code>, <code>bvecs</code>, <code>bvals</code>, and <code>json</code>
+        files to the appropriate subject directory under <code>rawdata</code>.</li>
+    <li>If there are multiple <em>b0</em> volumes, they will be averaged when creating <code>nodif.nii.gz</code></li>
+    <li>Skullstrips the data using <a href="https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/BET/UserGuide"><code>bet</code></a>.</li>
+    <li>Checks the quality by running <code>dti_qc_bet.sh</code> and viewing the resultant images.
+        See <a href="https://imgur.com/a/rkxkgV4">example images</a>.</li>
+    <li>Re-run if the skullstrip wasn't acceptable; change the <code>bet</code> threshold by passing
+        the <code>--rerun</code> and <code>-t</code>/<code>--threshold</code> options to <em>Step 1</em>.</li>
+    </ol>
+
+    ``` bash
+    dti_dicom2nifti_bet.sh -s sub01 --acq multishell --tgz sub01_dicom.tar.gz
+    # Creates the files:
+    ${projdir}/rawdir/sub-sub01/dwi/sub-sub01_acq-multishell_dwi.{nii.gz,bval,bvec,json}
+    # Creates the directory:
+    ${projdir}/tractography/sub-sub01/dwi/qc_bet/
+    ```
+2. Run `eddy` via `dti_eddy.sh`.
+    <ol type="a">
+    <li>Also calculates <code>eddy</code>-specific QC metrics via <code>eddy_quad</code> from
+        <a href="https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/eddyqc"><code>eddyqc</code></a>.</li>
+    </ol>
+
+    ``` bash
+    dti_eddy.sh -s sub01 -acq multishell
+    ```
+3. If you *do not* have a GPU but *do* have a *SLURM* scheduler, run *BEDPOSTX* via `dti_bedpostx_run.sh`.
+    <ol type="a">
+    <li>You will then also need to run <code>dti_bedpostx_postproc.sh</code>.</li>
+    <li>If you <em>do</em> have a GPU, you can run <code>bedpostx_gpu</code> on <code>${projdir}/${resdir}</code>.</li>
+    <li>If you have a system with an <em>SGE</em> scheduler, you can run <code>bedpostx</code> normally.</li>
+    </ol>
+4. Run the setup script `dti_probrackx2_setup.sh`.
+5. Check the quality of the registration/parcellation by running `dti_qc_probtrackx2.sh`.
 
 # Variables
 These variables are created in `dti_vars.sh` and are primarily used (by `dti_dicom2nifti_bet.sh`)

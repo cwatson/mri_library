@@ -1,50 +1,53 @@
 #! /bin/bash
 # Chris Watson, 2017-02-28
 set -a
+source $(dirname "${BASH_SOURCE[0]}")/globals.sh
 
 usage() {
     cat << !
 
- Setup and run 'eddy' on DTI data. If you do not have "acqparams.txt",
- "index.txt", or "slspec.txt" files in ${resdir}, then generic ones will be
- created (with values from the FSL wiki). If you have files that apply to all
- study subjects, you can pass those in via function arguments; these should be
- located in the ${projdir} (where the script is called from).
+ Setup and run ${myblue}eddy$(tput sgr0) on DTI data, and then calculate some QC metrics from
+ ${myblue}eddy_quad$(tput sgr0). If you do not have ${myblue}acqparams.txt$(tput sgr0), ${myblue}index.txt$(tput sgr0), or ${myblue}slspec.txt$(tput sgr0) files,
+ then generic ones will be created (with values from the FSL wiki).
+ If you have files that apply to all study subjects, you can pass those in via
+ function arguments; these should be located in the ${myblue}${projdir}$(tput sgr0) (where the script
+ is called from).
 
- USAGE:
-    $(basename $0) [-s SUBJECT] [--long SESSION] [--acq LABEL] [--params FILE]
-    [--index FILE] [--mp MPORDER] [--slspec FILE]
+ ${myyellow}USAGE:${mygreen}
+    $(basename $0) -s|--subject SUBJECT [--long SESSION] [--acq LABEL]
+        [--params FILE] [--index FILE] [--mp MPORDER] [--slspec FILE]
 
- OPTIONS:
-     -h, --help
+ ${myyellow}OPTIONS:
+     ${mymagenta}-h, --help$(tput sgr0)
          Show this message
 
-     -s, --subject [SUBJECT]
+     ${mymagenta}-s, --subject [SUBJECT]$(tput sgr0)
          Subject ID. This will be the "label" in the directories and filenames,
          as outlined by the BIDS spec.
 
-     --long [SESSION]
+     ${mymagenta}--long [SESSION]$(tput sgr0)
          If it's a longitudinal study, specify the session label
 
-     --acq [ACQ LABEL]
+     ${mymagenta}--acq [ACQ LABEL]$(tput sgr0)
          If multiple acquisitions, provide the label. For example, the TBI study
          acquired 2 DTI scans; the acq label for the TBI study would be "iso":
-            sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
+            ${mygreen}sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
 
-     --params [FILE]
-         A text file that will serve as the 'acqp' argument to 'eddy'
+     ${mymagenta}--params [FILE]$(tput sgr0)
+         A text file that will serve as the ${myblue}acqp$(tput sgr0) argument to ${myblue}eddy$(tput sgr0)
 
-     --index [FILE]
-         A text file that will serve as the 'index' argument to 'eddy'
+     ${mymagenta}--index [FILE]$(tput sgr0)
+     A text file that will serve as the ${myblue}index$(tput sgr0) argument to ${myblue}eddy$(tput sgr0)
 
-     --mp [MPORDER]
-         An integer value for the temporal order of movement. By default, it
-         will choose "# slices / 4" (the recommended maximum by Jesper)
+     ${mymagenta}--mp [MPORDER]$(tput sgr0)
+         An integer value for the temporal order of movement. This is the same
+         as the ${myblue}mporder$(tput sgr0) argument to ${myblue}eddy$(tput sgr0). ${mymagenta}[default: "# slices / 4"]$(tput sgr0)
+         (the recommended maximum by Jesper)
 
-     --slspec [FILE]
-         A text file that will serve as the 'slspec' argument to 'eddy'
+     ${mymagenta}--slspec [FILE]$(tput sgr0)
+     A text file that will serve as the ${myblue}slspec$(tput sgr0) argument to ${myblue}eddy$(tput sgr0)
 
- EXAMPLES:
+ ${myyellow}EXAMPLES:${mygreen}
      $(basename $0) -s SP7180 --long 01 --acq iso --mp 6 --slspec my_slspec.txt
 
 !
@@ -88,7 +91,7 @@ if [[ -d eddy ]]; then
     echo "Please remove directory if you wish to re-run."
     exit 10
 fi
-mkdir -p eddy
+mkdir -p eddy dtifit
 if [[ ! -f ${projdir}/${params} ]]; then
     printf "0 1 0 0.0646" > eddy/acqparams.txt
 else
@@ -157,10 +160,23 @@ jo eddy=$(jo mporder=${mp} repol=true residuals=true cnr_maps=true) | \
     jq -s add preproc.json - > tmp.json
 mv tmp.json preproc.json
 
+# eddy QC
+#---------------------------------------
+[[ -d eddy/dwi_eddy.qc ]] && rm -r eddy/dwi_eddy.qc
+${FSLDIR}/bin/eddy_quad eddy/dwi_eddy \
+    -idx eddy/index.txt -par eddy/acqparams.txt -m nodif_brain_mask -b bvals
+
+# tSNR
+#---------------------------------------
+#${FSLDIR}/bin/fslmaths data -Tmean mean
+#${FSLDIR}/bin/fslmaths data -Tstd std
+#${FSLDIR}/bin/fslmaths mean -div std tsnr
+#${FSLDIR}/bin/fslmaths tsnr -mas nodif_brain_mask tsnr_mask
+#echo $(${FSLDIR}/bin/fslstats tsnr_mask -l 0 -M) >> tsnr.txt
+
 #-------------------------------------------------------------------------------
 # Run dtifit
 #-------------------------------------------------------------------------------
-mkdir -p dtifit
 ${FSLDIR}/bin/dtifit -k data -m nodif_brain_mask -o dtifit/dtifit \
     -r bvecs -b bvals --sse --save_tensor
 ${FSLDIR}/bin/fslmaths dtifit/dtifit_L2 \

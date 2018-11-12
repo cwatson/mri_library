@@ -1,3 +1,18 @@
+# 2018-11-12
+
+## New files
+* Moved the color variables to `globals.sh`; will be sourced by scripts for better usage messages
+* `dicom2nifti.launcher.slurm` runs the first processing step for multiple subjects
+* `eddy_cuda.slurm` runs `dti_eddy.sh` on *Lonestar5* for a single subject
+
+## Removed files
+* `fsl_qa_preproc.launcher.slurm` is no longer needed
+* `preproc.slurm` is superseded by `dicom2nifti.slurm` and `eddy_cuda.slurm`
+* The code from `dti_qc_eddy.sh` is now in `dti_eddy.sh`
+
+## Minor changes
+* `dti_dicom2nifti_bet.sh` now directly calls `dti_qc_bet.sh`
+
 # 2018-11-06
 * Use `cut` to get correct `jq` version info
 * Remove backticks from `usage` functions
