@@ -104,6 +104,7 @@ if  [[ ! -e ${fs_label_dir}/anatorig/${atlas_base}.nii.gz ]]; then
         mri_convert ${mri_dir}/${atlas_base}.{mgz,nii.gz}
     fi
     mv ${mri_dir}/${atlas_base}.nii.gz ${fs_label_dir}/anatorig/
+fi
 
 #-------------------------------------------------------------------------------
 # Check if the transforms from Tracula exist; if not, create them

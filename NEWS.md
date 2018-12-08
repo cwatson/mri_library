@@ -1,3 +1,7 @@
+# 2018-12-08
+
+* Add a few CLI options for `eddy_quad`
+
 # 2018-11-12
 
 ## New files
