@@ -2,6 +2,7 @@
 
 * Add a few CLI options for `eddy_quad`
 * Add an error check for the `${target}_dicom.tar.gz` file
+* Fix bug in `dti_dicom2nifti` in which the `preproc.json` file was incorrectly written to the `qc_bet` directory
 
 # 2018-11-12
 

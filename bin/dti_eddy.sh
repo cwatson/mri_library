@@ -89,7 +89,7 @@ cd ${projdir}/${resdir}
 if [[ -d eddy ]]; then
     echo "'eddy' has already been run."
     echo "Please remove directory if you wish to re-run."
-    exit 10
+    exit 11
 fi
 mkdir -p eddy dtifit
 if [[ ! -f ${projdir}/${params} ]]; then

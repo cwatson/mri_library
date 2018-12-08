@@ -4,39 +4,43 @@
 # updated 2017-03-27
 # Chris Watson, 2016-01-11
 set -a
+source $(dirname "${BASH_SOURCE[0]}")/globals.sh
 
 usage() {
     cat << !
 
- Performs the steps needed before running "probtrackx2" with Freesurfer labels:
- generation of a NIfTI "aparc+aseg" file (if it doesn't exist); register the
- anatomical (T1) volume to diffusion space (via TRACULA).
+ Performs the steps needed before running ${myblue}probtrackx2$(tput sgr0) with Freesurfer labels:
+     1. Generate a NIfTI ${myblue}aparc+aseg$(tput sgr0) file (if needed)
+     2. Register the anatomical (T1) volume to diffusion space (via ${myblue}TRACULA$(tput sgr0)).
 
- USAGE: $(basename $0) [OPTIONS]
+ ${myyellow}USAGE:${mygreen}
+    $(basename $0) -s|--subject SUBJECT -a|--atlas ATLAS [--rerun]
+        [--long SESSION] [--acq LABEL]
 
- OPTIONS:
-    -h, --help
+ ${myyellow}OPTIONS:
+    ${mymagenta}-h, --help$(tput sgr0)
         Show this message
 
-    -a, --atlas [ATLAS]
-        The atlas name (either 'dk.scgm', 'dkt.scgm', or 'destrieux.scgm')
+    ${mymagenta}-s, --subject [SUBJECT]$(tput sgr0)
+        Subject ID. This will be the "label" in the directories and filenames,
+        as outlined by the BIDS spec
 
-    -s, --subject [SUBJECT]
-        Subject ID. This will be the "label" outlined by the BIDS spec
+    ${mymagenta}-a, --atlas [ATLAS]$(tput sgr0)
+        The atlas name (either ${myblue}dk.scgm$(tput sgr0), ${myblue}dkt.scgm$(tput sgr0), or ${myblue}destrieux.scgm$(tput sgr0))
 
-    --long [SESSION]
+    ${mymagenta}--long [SESSION]$(tput sgr0)
         If it's a longitudinal study, specify the session label.
 
-    --acq [ACQ LABEL]
+    ${mymagenta}--acq [ACQ LABEL]$(tput sgr0)
         If multiple acquisitions, provide the label. For example, the TBI study
-        acquired 2 DTI scans; the acq label for the TBI study would be "iso":
-            sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
+        acquired 2 DTI scans; the acq label for the TBI study would be ${myblue}iso$(tput sgr0):
+            ${mygreen}sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
 
-    --rerun
+    ${mymagenta}--rerun$(tput sgr0)
         Include if you want to re-run the registration steps
 
- EXAMPLE:
-     $(basename $0) -s SP7180 --long 01 --acq iso
+    ${myyellow}EXAMPLE:${mygreen}
+        $(basename $0) -s SP7180 --long 01 --acq iso
 
 !
 }
@@ -45,7 +49,7 @@ usage() {
 #-------------------------------------------------------------------------------
 [[ $# == 0 ]] && usage && exit
 
-TEMP=$(getopt -o ha:s: --long help,atlas:,subject:,long:,acq:,rerun -- "$@")
+TEMP=$(getopt -o hs:a: --long help,subject:,atlas:,long:,acq:,rerun -- "$@")
 [[ $? -ne 0 ]] && usage && exit 1
 eval set -- "${TEMP}"
 
@@ -56,8 +60,8 @@ rerun=0
 while true; do
     case "$1" in
         -h|--help)      usage && exit ;;
-        -a|--atlas)     atlas=$2; shift ;;
         -s|--subject)   subj="$2"; shift ;;
+        -a|--atlas)     atlas=$2; shift ;;
         --long)         long=1; sess="$2"; shift ;;
         --acq)          acq="$2"; shift ;;
         --rerun)        rerun=1; shift ;;
@@ -67,18 +71,16 @@ while true; do
 done
 
 atlarray=(dk.scgm dkt.scgm destrieux.scgm)
-[[ ! "${atlarray[@]}" =~ "${atlas}" ]] && echo -e "\nAtlas ${atlas} is invalid.\n" && exit 10
+[[ ! "${atlarray[@]}" =~ "${atlas}" ]] && echo -e "\nAtlas ${atlas} is invalid.\n" && exit 12
 
 source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 
 # Set directory variables
 #-------------------------------------------------------------------------------
-#TODO check if correct; might have to change to what's done in bpx scripts
 dti_dir=${projdir}/${resdir}
 SUBJECTS_DIR=${projdir}/freesurfer
 
-#TODO next line can prob be removed
-[[ ! -d ${dti_dir} ]] && echo "Subject directory ${dti_dir} is invalid." && exit 11
+[[ ! -d ${dti_dir} ]] && echo "Subject directory ${dti_dir} is invalid." && exit 13
 ln -s ${dti_dir}/{nodif.nii.gz,lowb.nii.gz}
 ln -s ${dti_dir}/{nodif_brain_mask.nii.gz,lowb_brain_mask.nii.gz}
 
@@ -149,7 +151,7 @@ fi
 #-------------------------------------------------------------------------------
 
 labelfile=${HOME}/Dropbox/dnl_library/bin/fsl/${atlas}.txt
-[[ ! -e ${labelfile} ]] && echo "Label file missing." && exit 12
+[[ ! -e ${labelfile} ]] && echo "Label file missing." && exit 14
 mkdir -p ${seed_dir} && cd ${seed_dir}
 while read line; do
     roiID=$(echo ${line} | awk '{print $1}' -)

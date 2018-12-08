@@ -148,6 +148,7 @@ ${FSLDIR}/bin/bet nodif{,_brain} -m -R -f ${thresh}
 source ${scriptdir}/dti_qc_bet.sh
 
 # Store system and software information in JSON file
+cd ${projdir}/${resdir}
 log_system_info
 for sw in dcmtk jo jq fsl; do
     log_sw_info ${sw}
