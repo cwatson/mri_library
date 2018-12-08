@@ -94,10 +94,14 @@ if [[ ${rerun} -eq 0 ]]; then
         if [[ -f ${tgz} ]]; then
             mv ${tgz} ${projdir}/${srcdir}/${target}_dicom.tar.gz
         else
-            echo "Input file ${tgz} is invalid!"
+            echo "Input file ${tgz} is invalid."
             echo "Please make sure to use the full path to the file."
             exit 9
         fi
+    fi
+    if [[ ! -f ${target}_dicom.tar.gz ]]; then
+        echo "Could not find DICOM 'tar' archive."
+        exit 10
     fi
     firstfile=$(tar tf ${target}_dicom.tar.gz | grep -v '/$' | head -1)
     tar xf ${target}_dicom.tar.gz ${firstfile} --xform='s#^.+/##x'

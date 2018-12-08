@@ -1,6 +1,7 @@
 # 2018-12-08
 
 * Add a few CLI options for `eddy_quad`
+* Add an error check for the `${target}_dicom.tar.gz` file
 
 # 2018-11-12
 

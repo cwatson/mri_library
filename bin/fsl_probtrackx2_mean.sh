@@ -35,7 +35,7 @@ while getopts ":hp:m:s:t:" OPTION; do
 done
 
 [[ $# == 0 ]] && usage
-[[ ! -d ${subj} ]] && echo -e "Subject ${subj} is not valid!\n" && exit 3
+[[ ! -d ${subj} ]] && echo -e "Subject ${subj} is not valid.\n" && exit 3
 [[ -z ${thr} ]] && thr=0.9
 case ${proj} in
     tbi|TBI)
@@ -46,7 +46,7 @@ case ${proj} in
         cd ${subj}.probtrackX2/results/dkt.scgm
         measure_im=../../../../${subj}/dtifit/${subj}_dtifit_${measure}
         ;;
-    *) echo "Invalid project!\n" && usage ;;
+    *) echo "Invalid project.\n" && usage ;;
 esac
 
 for seed in [12]*; do

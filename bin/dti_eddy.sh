@@ -87,7 +87,7 @@ cd ${projdir}/${resdir}
 # Setup eddy
 #-------------------------------------------------------------------------------
 if [[ -d eddy ]]; then
-    echo "'eddy' has already been run!"
+    echo "'eddy' has already been run."
     echo "Please remove directory if you wish to re-run."
     exit 10
 fi

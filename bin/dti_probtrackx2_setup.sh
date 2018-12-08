@@ -67,7 +67,7 @@ while true; do
 done
 
 atlarray=(dk.scgm dkt.scgm destrieux.scgm)
-[[ ! "${atlarray[@]}" =~ "${atlas}" ]] && echo -e "\nAtlas ${atlas} is invalid!\n" && exit 10
+[[ ! "${atlarray[@]}" =~ "${atlas}" ]] && echo -e "\nAtlas ${atlas} is invalid.\n" && exit 10
 
 source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 
@@ -78,7 +78,7 @@ dti_dir=${projdir}/${resdir}
 SUBJECTS_DIR=${projdir}/freesurfer
 
 #TODO next line can prob be removed
-[[ ! -d ${dti_dir} ]] && echo "Subject directory ${dti_dir} is invalid!" && exit 11
+[[ ! -d ${dti_dir} ]] && echo "Subject directory ${dti_dir} is invalid." && exit 11
 ln -s ${dti_dir}/{nodif.nii.gz,lowb.nii.gz}
 ln -s ${dti_dir}/{nodif_brain_mask.nii.gz,lowb_brain_mask.nii.gz}
 
@@ -149,7 +149,7 @@ fi
 #-------------------------------------------------------------------------------
 
 labelfile=${HOME}/Dropbox/dnl_library/bin/fsl/${atlas}.txt
-[[ ! -e ${labelfile} ]] && echo "Label file missing!" && exit 12
+[[ ! -e ${labelfile} ]] && echo "Label file missing." && exit 12
 mkdir -p ${seed_dir} && cd ${seed_dir}
 while read line; do
     roiID=$(echo ${line} | awk '{print $1}' -)

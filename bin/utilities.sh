@@ -16,7 +16,7 @@ check_sw() {
     has_sw=$(type -P ${1})
     if [[ $? -ne 0 ]]; then
         echo -ne "${myred}\nERROR: "
-        echo "Please install ${2}!"
+        echo "Please install ${2}."
         exit ${3}
     fi
 }
@@ -32,7 +32,7 @@ check_sw() {
 
 log_sw_info() {
     if [[ $# -lt 1 ]]; then
-        echo "Please supply the name of a binary/program!"
+        echo "Please supply the name of a binary/program."
         exit 10
     elif [[ $# -lt 2 ]]; then
         outfile=preproc.json
