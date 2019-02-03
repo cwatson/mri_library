@@ -37,7 +37,7 @@ export LAUNCHER_JOB_FILE=${WORK}/stress_study/logs/stampede2/dicom2nifti_${1}.pa
 
 # Argument checking
 #-------------------------------------------------------------------------------
-TEMP=$(getopt -o ht:n: --long help,threshold:,long:,acq:,tgz:,dry-run -- "$@")
+TEMP=$(getopt -o ht:n --long help,threshold:,long:,acq:,tgz:,dry-run -- "$@")
 [[ $? -ne 0 ]] && usage && exit
 eval set -- "${TEMP}"
 
@@ -51,11 +51,11 @@ dryrun=0
 while true; do
     case "$1" in
         -h|--help)      usage && exit ;;
-        -t|--threshold) thresh="$2"; shift ;;
-        --long)         long=1; sess="$2"; shift ;;
-        --acq)          acq="$2"; shift ;;
-        --tgz)          tgz="$2"; shift ;;
-        -n|--dry-run)   dryrun=1 ;;
+        -t|--threshold) thresh="$2"; shift 2 ;;
+        --long)         long=1; sess="$2"; shift 2 ;;
+        --acq)          acq="$2"; shift 2 ;;
+        --tgz)          tgz="$2"; shift 2 ;;
+        -n|--dry-run)   dryrun=1; shift ;;
         --)             shift; break ;;
         *)              usage && exit 2 ;;
     esac

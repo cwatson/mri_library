@@ -132,7 +132,7 @@ if [[ ${rerun} -eq 0 ]]; then
     ln ${projdir}/${rawdir}/${target}.nii.gz dwi_orig.nii.gz
 
     # Fix for FSL6.0.0
-    fslmaths dwi_orig -odt float
+    fslmaths dwi_orig dwi_orig -odt float
 
     ct=1
     for i in ${lowb}; do
