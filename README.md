@@ -31,6 +31,7 @@ proposals, nothing has found consistent use (to my knowledge). So I place some o
 * [Known Issues](#known-issues)
     * [Slice acquisition times](#slice-acquisition-times)
         * [GE](#ge)
+        * [fslroi](#fslroi)
 
 <!-- vim-markdown-toc -->
 # Requirements
@@ -145,6 +146,8 @@ with versions `v1.3.2` and `v1.5.1`, respectively.
 The scripts will perform the following steps. *Freesurfer*'s `recon-all` should be run before this (or before step 5, at least).
 1. Run `dti_dicom2nift_bet.sh` to extract *DICOM* files and convert to *NIfTI* using `dcm2niix`, skullstrip, and create images for QC purposes.
     <ol type="a">
+    <li>Renames and move the <code>tgz</code> file to the correct, <em>BIDS</em>-compatible filename and location (if necessary)</li>
+    <li>Extracts the <em>DICOM</em> files from the <code>tgz</code> file and convert to <em>NIfTI</em> (using <code>dcm2niix</code>) </li>
     <li>Moves the <code>nii.gz</code>, <code>bvecs</code>, <code>bvals</code>, and <code>json</code>
         files to the appropriate subject directory under <code>rawdata</code>.</li>
     <li>If there are multiple <em>b0</em> volumes, they will be averaged when creating <code>nodif.nii.gz</code></li>
@@ -216,3 +219,5 @@ That thread links to [another thread](https://neurostars.org/t/getting-missing-g
 which references some more *DICOM* tags, and links to a [Github repo](https://github.com/nikadon/cc-dcm2bids-wrapper)
 that may be able to find out this information.
 
+### fslroi
+In FSL *v6.0.0*, `fslroi` has undesired behavior; for some files, it remapped voxel values so that the `nodif` images were completely wrong. A temporary workaround is to use `fslmaths` to change the image type of `dwi_orig.nii.gz` to *float*. This bug should be fixed in *v6.0.1*.

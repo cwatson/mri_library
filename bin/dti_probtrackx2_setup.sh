@@ -39,8 +39,8 @@ usage() {
     ${mymagenta}--rerun$(tput sgr0)
         Include if you want to re-run the registration steps
 
-    ${myyellow}EXAMPLE:${mygreen}
-        $(basename $0) -s SP7180 --long 01 --acq iso
+ ${myyellow}EXAMPLE:${mygreen}
+    $(basename $0) -s SP7180 --long 01 --acq iso
 
 !
 }
@@ -65,13 +65,13 @@ while true; do
         --long)         long=1; sess="$2"; shift ;;
         --acq)          acq="$2"; shift ;;
         --rerun)        rerun=1; shift ;;
-        * )         break ;;
+        * )             break ;;
     esac
     shift
 done
 
 atlarray=(dk.scgm dkt.scgm destrieux.scgm)
-[[ ! "${atlarray[@]}" =~ "${atlas}" ]] && echo -e "\nAtlas ${atlas} is invalid.\n" && exit 12
+[[ ! "${atlarray[@]}" =~ "${atlas}" ]] && echo -e "\nAtlas ${atlas} is invalid.\n" && exit 13
 
 source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 
@@ -80,9 +80,9 @@ source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 dti_dir=${projdir}/${resdir}
 SUBJECTS_DIR=${projdir}/freesurfer
 
-[[ ! -d ${dti_dir} ]] && echo "Subject directory ${dti_dir} is invalid." && exit 13
-ln -s ${dti_dir}/{nodif.nii.gz,lowb.nii.gz}
-ln -s ${dti_dir}/{nodif_brain_mask.nii.gz,lowb_brain_mask.nii.gz}
+[[ ! -d ${dti_dir} ]] && echo "Subject directory ${dti_dir} is invalid." && exit 14
+ln ${dti_dir}/{nodif.nii.gz,lowb.nii.gz}
+ln ${dti_dir}/{nodif_brain_mask.nii.gz,lowb_brain_mask.nii.gz}
 
 mkdir -p ${SUBJECTS_DIR}/${subj}/{dmri,dlabel/{anatorig,diff}}
 fs_dti_dir=${SUBJECTS_DIR}/${subj}/dmri
@@ -111,13 +111,13 @@ fi
 #-------------------------------------------------------------------------------
 # Check if the transforms from Tracula exist; if not, create them
 #-------------------------------------------------------------------------------
-if [ ! -e "${SUBJECTS_DIR}/${subj}/dmri/xfms/anatorig2diff.bbr.mat" ]; then
-    ln -s ${dti_dir}/data.nii.gz ${fs_dti_dir}/dwi.nii.gz
-    ln -s ${dti_dir}/{bvals,bvecs,lowb.nii.gz,lowb_brain_mask.nii.gz} ${fs_dti_dir}/
-    ln -s ${dti_dir}/lowb_brain_mask.nii.gz ${fs_label_dir}/diff
+if [[ ! -e ${SUBJECTS_DIR}/${subj}/dmri/xfms/anatorig2diff.bbr.mat ]]; then
+    ln ${dti_dir}/data.nii.gz ${fs_dti_dir}/dwi.nii.gz
+    ln ${dti_dir}/{bvals,bvecs,lowb.nii.gz,lowb_brain_mask.nii.gz} ${fs_dti_dir}/
+    ln ${dti_dir}/lowb_brain_mask.nii.gz ${fs_label_dir}/diff
 
     for meas in FA MD L1 L2 L3; do
-        ln -s ${dti_dir}/dtifit/*_${meas}.nii.gz ${fs_dti_dir}/dtifit_${meas}.nii.gz
+        ln ${dti_dir}/dtifit/*_${meas}.nii.gz ${fs_dti_dir}/dtifit_${meas}.nii.gz
     done
 
     # Run the remaining steps of trac-all -prep
@@ -150,8 +150,8 @@ if [[ ${atlas} == 'dkt.scgm' ]] || [[ ${atlas} == 'destrieux.scgm' ]]; then
 fi
 #-------------------------------------------------------------------------------
 
-labelfile=${HOME}/Dropbox/dnl_library/bin/fsl/${atlas}.txt
-[[ ! -e ${labelfile} ]] && echo "Label file missing." && exit 14
+labelfile=${scriptdir}/../atlases/${atlas}.txt
+[[ ! -e ${labelfile} ]] && echo "Label file '${labelfile}' missing." && exit 15
 mkdir -p ${seed_dir} && cd ${seed_dir}
 while read line; do
     roiID=$(echo ${line} | awk '{print $1}' -)

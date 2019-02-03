@@ -80,6 +80,11 @@ while true; do
     shift
 done
 
+if [[ -z ${subj} ]]; then
+    echo "Please provide a subject ID."
+    exit 11
+fi
+
 source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 cd ${projdir}/${resdir}
 
@@ -89,7 +94,7 @@ cd ${projdir}/${resdir}
 if [[ -d eddy ]]; then
     echo "'eddy' has already been run."
     echo "Please remove directory if you wish to re-run."
-    exit 11
+    exit 12
 fi
 mkdir -p eddy dtifit
 if [[ ! -f ${projdir}/${params} ]]; then

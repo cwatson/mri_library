@@ -4,29 +4,55 @@
 #_______________________________________________________________________________
 # updated 2017-03-28
 # Chris Watson, 2016-11-02
-#TODO add flag to turn on/off "--pd"??? TODO
+set -a
+source $(dirname "${BASH_SOURCE[0]}")/globals.sh
 
 usage() {
     cat << !
 
-    usage: $(basename $0) [options]
+ Run ${myblue}probtrackx2$(tput sgr0) w/ a separate process for each seed ROI, or if ${myblue}--network$(tput sgr0)
+ is included, then in "network" mode. The GPU version is used unless ${myblue}--parallel$(tput sgr0)
+ is included.
 
-    This script will run "probtrackx2" w/ a separate process for each seed ROI,
-    or if "--network" is included, then in network mode. The GPU version is used
-    unless "--parallel" is included.
+ ${myyellow}USAGE:${mygreen}
+    $(basename $0) -s|--subject SUBJECT -a|--atlas ATLAS [--long SESSION]
+        [--acq LABEL] [-P NUM_SAMPLES] [--parallel] [--network] [--pd]
 
-    OPTIONS:
-        -h          Show this message
-        -a          Atlas (default: 'dk.scgm')
-        -s          Subject name/ID
-        -P          Number of samples (default: 5000)
-        --parallel  Include if you want to do in parallel (if not, the GPU
-                    version will be called as well)
-        --network   Run in network mode (overrides "--parallel")
+ ${myyellow}OPTIONS:
+    ${mymagenta}-h, --help$(tput sgr0)
+        Show this message
 
-    EXAMPLE:
-        $(basename $0) -a dk.scgm -s SP7104_time1 -P 1000 --parallel
-        $(basename $0) -a dkt.scgm -s cd001
+    ${mymagenta}-a, --atlas$(tput sgr0)
+        The atlas name (either ${myblue}dk.scgm$(tput sgr0), ${myblue}dkt.scgm$(tput sgr0), or ${myblue}destrieux.scgm$(tput sgr0))
+
+    ${mymagenta}-s, --subject$(tput sgr0)
+        Subject ID. This will be the "label" in the directories and filenames,
+        as outlined by the BIDS spec
+
+    ${mymagenta}--long [SESSION]$(tput sgr0)
+        If it's a longitudinal study, specify the session label.
+
+    ${mymagenta}--acq [ACQ LABEL]$(tput sgr0)
+        If multiple acquisitions, provide the label. For example, the TBI study
+        acquired 2 DTI scans; the acq label for the TBI study would be ${myblue}iso$(tput sgr0):
+            ${mygreen}sub-<subLabel>_ses-<sessLabel>_acq-iso_dwi.nii.gz
+
+    ${mymagenta}-P$(tput sgr0)
+        Number of samples (default: 5000)
+
+    ${mymagenta}--parallel$(tput sgr0)
+        Include if you want to do in parallel (if not, the GPU version will be
+        called as well)
+
+    ${mymagenta}--network$(tput sgr0)
+        Run in network mode (overrides ${myblue}--parallel$(tput sgr0))
+
+    ${mymagenta}--pd$(tput sgr0)
+        Run with the ${myblue}--pd$(tput sgr0) option
+
+ ${myyellow}EXAMPLES:${mygreen}
+    $(basename $0) -a dk.scgm -s SP7104_time1 -P 1000 --parallel
+    $(basename $0) -a dkt.scgm -s cd001
 
 !
 }
@@ -35,34 +61,41 @@ usage() {
 #-------------------------------------------------------------------------------
 [[ $# == 0 ]] && usage && exit
 
-TEMP=$(getopt -o ha:s:P: --long parallel,network -- "$@")
+TEMP=$(getopt -o hs:a:P: --long help,subject:,atlas:,long:,acq:,parallel,network,pd -- "$@")
 [[ $? -ne 0 ]] && usage && exit 1
 eval set -- "${TEMP}"
 
+long=0
+sess=''
+acq=''
+nSamples=5000
 run_parallel=0
 run_network=0
+do_pd=0
 while true; do
     case "$1" in
-        -h)         usage && exit ;;
-        -a)         atlas="$2"; shift ;;
-        -s)         subj="$2"; shift ;;
-        -P)         nSamples="$2"; shift ;;
-        --parallel) run_parallel=1 ;;
-        --network)  run_network=1 ;;
-        * )         break ;;
+        -h|--help)      usage && exit ;;
+        -s|--subject)   subj="$2"; shift ;;
+        -a|--atlas)     atlas="$2"; shift ;;
+        --long)         long=1; sess="$2"; shift ;;
+        --acq)          acq="$2"; shift ;;
+        -P)             nSamples="$2"; shift ;;
+        --parallel)     run_parallel=1 ;;
+        --network)      run_network=1 ;;
+        --pd)           do_pd=1 ;;
+        * )             break ;;
     esac
     shift
 done
 
-[[ -z ${nSamples} ]] && nSamples=5000
-[[ -z ${atlas} ]] && atlas=dk.scgm
-bpx_dir=${subj}.bedpostX
-seed_dir=${subj}.probtrackX2/seeds/${atlas}
-seed_file=${seed_dir}/seeds_sorted.txt
-res_dir=${subj}.probtrackX2/results/${atlas}
+atlarray=(dk.scgm dkt.scgm destrieux.scgm)
+[[ ! "${atlarray[@]}" =~ "${atlas}" ]] && echo -e "\nAtlas ${atlas} is invalid.\n" && exit 12
 
-[[ ! -e "timing_ptx.csv" ]] && touch timing_ptx.csv
-start=$(date +%s)
+source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
+bpx_dir=${projdir}/${resdir}.bedpostX
+seed_dir=${projdir}/${resdir}.probtrackX2/seeds/${atlas}
+seed_file=${seed_dir}/seeds_sorted.txt
+ptx_dir=${subj}.probtrackX2/results/${atlas}
 
 #-----------------------------------------------------------
 # Run in parallel with regular ptx2, or not with GPU version
@@ -81,7 +114,7 @@ if [[ ${run_parallel} -eq 1 ]]; then
             --forcedir \
             --opd \
             --avoid=${seed_dir}/ventricles.nii.gz \
-            --dir=${res_dir}/$(basename ${line} .nii.gz) \
+            --dir=${ptx_dir}/$(basename ${line} .nii.gz) \
             --targetmasks=${seed_file}
     done < ${seed_file}
 else
@@ -99,10 +132,11 @@ else
                 --forcedir \
                 --opd \
                 --avoid=${seed_dir}/ventricles.nii.gz \
-                --dir=${res_dir}/$(basename ${line} .nii.gz) \
+                --dir=${ptx_dir}/$(basename ${line} .nii.gz) \
                 --targetmasks=${seed_file}
         done < ${seed_file}
     else
+        # Don't run in parallel, and run in "--network" mode
         #TODO should I include "--omatrix1" and others?
         probtrackx2_gpu \
             --network \
@@ -113,13 +147,6 @@ else
             --forcedir \
             --opd \
             --avoid=${seed_dir}/ventricles.nii.gz \
-            --dir=${res_dir}/network.gpu/
+            --dir=${ptx_dir}/network.gpu/
     fi
 fi
-
-end=$(date +%s)
-runtime=$((end-start))
-nVoxels=$(awk '{sum+=$1} END {print sum}' ${seed_dir}/sizes.txt)
-#TODO figure out what the "0" is; should be ${run_parallel}?
-#TODO add ${run_network} now
-echo "${subj},${runtime},${nSamples},0,${nVoxels}" >> timing_ptx.csv
