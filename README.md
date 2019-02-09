@@ -46,8 +46,8 @@ When running the initial scripts, you will need to provide 1 of the following:
     Here, the `${target}` variable should follow the *BIDS* spec; for example
     (with optional information in square brackets):
     ``` bash
-    sub-<studyID>[_ses-01][_acq-multishell]_dwi_dicom.tar.gz
-    sub-<studyID>[_ses-01]_task-rest[_acq-multiband][_run-01]_dicom.tar.gz`
+    sub-<studyID>[_ses-<sessionID>][_acq-<acquisition>]_dwi_dicom.tar.gz
+    sub-<studyID>[_ses-<sessionID>]_task-rest[_acq-<acquisition>][_run-<runID>]_dicom.tar.gz`
     ```
     In this case, you do not have to use the `--tgz` option to `dti_dicom2nifti_bet.sh`.
 2. A `tar.gz` that you provide as input to the initial script, `dti_dicom2nifti_bet.sh`.
@@ -57,7 +57,7 @@ When running the initial scripts, you will need to provide 1 of the following:
 ### Parcellations
 Subject-specific parcellations will be used as the sources/targets of the network (at least for DTI tractography).
 The results from *Freesurfer*'s `recon-all` should be in `${projdir}/freesurfer`.
-The subject directories (within `freesurfer`) should at least share the same directory name as those in `sourcedata`.
+The subject directories (within `freesurfer`) should at least share the same directory names as those in `sourcedata`.
 
 ## Software
 In addition to good-quality T1-weighted and DWI data, some software requirements are:
@@ -67,7 +67,7 @@ In addition to good-quality T1-weighted and DWI data, some software requirements
     For example, it will record the `-f` value used with `bet`.
 * [`jq`](https://stedolan.github.io/jq) also processes *JSON* files.
 * A recent version of [`dcm2niix`](https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage)
-    * The version I used at the time of writing is `v1.0.20181013  GCC4.8.5 (64-bit Linux)`
+    * The version I used at the time of writing is `v1.0.20181125  GCC4.8.5 (64-bit Linux)`
 * [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki) version >= *6.0.0*
 * The [ImageMagick suite](https://www.imagemagick.org/script/index.php)
     * Available in the repositories for *Red Hat*-based systems (*RHEL*, *CentOS*, *Scientific Linux*)

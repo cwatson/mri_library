@@ -32,8 +32,11 @@ usage() {
 }
 
 module load launcher
+export LAUNCHER_PLUGIN_DIR=${LAUNCHER_DIR}/plugins
+export LAUNCHER_RMI=SLURM
 export LAUNCHER_WORKDIR=${PWD}
-export LAUNCHER_JOB_FILE=${WORK}/stress_study/logs/stampede2/dicom2nifti_${1}.paramlist
+export LAUNCHER_JOB_FILE=${WORK}/stress_study/logs/stampede2/dicom2nifti.paramlist
+[[ -f ${LAUNCHER_JOB_FILE} ]] && rm ${LAUNCHER_JOB_FILE}
 
 # Argument checking
 #-------------------------------------------------------------------------------
@@ -72,7 +75,7 @@ done
 if [[ ${dryrun} -eq 0 ]]; then
     cd $LAUNCHER_WORKDIR/
     echo " WORKING DIR:   $LAUNCHER_WORKDIR/"
-    $TACC_LAUNCHER_DIR/paramrun
+    $LAUNCHER_DIR/paramrun
 
     echo " Parameteric Job Complete"
 else
