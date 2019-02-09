@@ -66,7 +66,11 @@ done
 
 for subj in "$*"; do
     sub=${subj##*sub-}
-    echo "${HOME}/code/mri_library/bin/dti_dicom2nifti_bet.sh -s ${sub} -t ${thresh} --long ${sess} --acq ${acq} --tgz ${tgz}" >> ${LAUNCHER_JOB_FILE}
+    if [[ -z ${tgz} ]]; then
+        echo "${HOME}/code/mri_library/bin/dti_dicom2nifti_bet.sh -s ${sub} -t ${thresh} --long ${sess} --acq ${acq}" >> ${LAUNCHER_JOB_FILE}
+    else
+        echo "${HOME}/code/mri_library/bin/dti_dicom2nifti_bet.sh -s ${sub} -t ${thresh} --long ${sess} --acq ${acq} --tgz ${tgz}" >> ${LAUNCHER_JOB_FILE}
+    fi
 done
 
 #----------------
