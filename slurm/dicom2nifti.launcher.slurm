@@ -1,5 +1,6 @@
 #!/bin/bash
 #
+#SBATCH -J dicom2nifti
 #SBATCH -N 1            # Total number of nodes (48 cores/node; 2 threads/core)
 #SBATCH -n 65           # Total number of tasks
 #SBATCH -p skx-normal   # Queue name
@@ -10,25 +11,21 @@
 set -a
 
 usage() {
-    cat << !
-
- USAGE:
-    $(basename $0) [-t|--threshold THRESH] [--long SESSION] [--acq LABEL]
-        [--tgz FILE] [-n|--dry-run] -- SUBJECT_LIST
-
- The subject list *must* come after the "--" delimiter, and can be used with
- a glob that includes the BIDS-compliant subject label; for example, if you have
- already set-up the "sourcedata" directory with "sub-01", "sub-02", etc. See the
- example below.
-
- If you would like to check the launcher "paramlist" file without submitting the
- launcher job, use the "-n|--dry-run" option to create this file.
-
- EXAMPLE:
-    $(basename $0) --long 01 --acq iso -- sourcedata/sub-SP7*
-        Will match all subjects starting "SP7xxx"
-
-!
+ echo  'USAGE:'
+ echo  '   $(basename $0) [-t|--threshold THRESH] [--long SESSION] [--acq LABEL]'
+ echo  '       [--tgz FILE] [-n|--dry-run] -- SUBJECT_LIST'
+ echo
+ echo  'The subject list *must* come after the "--" delimiter, and can be used with'
+ echo  'a glob that includes the BIDS-compliant subject label; for example, if you have'
+ echo  'already set-up the "sourcedata" directory with "sub-01", "sub-02", etc. See the'
+ echo  'example below.'
+ echo
+ echo  'If you would like to check the launcher "paramlist" file without submitting the'
+ echo  'launcher job, use the "-n|--dry-run" option to create this file.'
+ echo
+ echo  'EXAMPLE:'
+ echo  '   $(basename $0) --long 01 --acq iso -- sourcedata/sub-SP7*'
+ echo  '       Will match all subjects starting "SP7xxx"'
 }
 
 module load launcher
@@ -64,7 +61,7 @@ while true; do
     esac
 done
 
-for subj in "$*"; do
+for subj in "$@"; do
     sub=${subj##*sub-}
     if [[ -z ${tgz} ]]; then
         echo "${HOME}/code/mri_library/bin/dti_dicom2nifti_bet.sh -s ${sub} -t ${thresh} --long ${sess} --acq ${acq}" >> ${LAUNCHER_JOB_FILE}
