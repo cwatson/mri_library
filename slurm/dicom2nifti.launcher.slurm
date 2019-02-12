@@ -57,7 +57,7 @@ while true; do
         --tgz)          tgz="$2"; shift 2 ;;
         -n|--dry-run)   dryrun=1; shift ;;
         --)             shift; break ;;
-        *)              usage && exit 2 ;;
+        *)              break ;;
     esac
 done
 

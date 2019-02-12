@@ -38,6 +38,7 @@ while true; do
         -h|--help)      usage && exit ;;
         -s|--subject)   subj="$2"; shift ;;
         --long)         long=1; sess="$2"; shift ;;
+        *)              break ;;
     esac
 done
 source ${HOME}/code/mri_library/bin/dti_vars.sh

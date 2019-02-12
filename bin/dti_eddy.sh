@@ -89,6 +89,26 @@ source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 cd ${projdir}/${resdir}
 
 #-------------------------------------------------------------------------------
+# Check if this is being run on Lonestar5
+# i.e., using a Singularity container
+#-------------------------------------------------------------------------------
+if [[ ! -z ${FSL6_CUDA_EXEC} ]]; then
+    nvolcommand='${FSL6_CUDA_EXEC} fslnvols'
+    valcommand='${FSL6_CUDA_EXEC} fslval'
+    eddycommand='${FSL6_CUDA_EXEC} eddy_cuda'
+    qccommand='${FSL6_CUDA_EXEC} eddy_quad'
+    dticommand='${FSL6_CUDA_EXEC} dtifit'
+    mathcommand='${FSL6_CUDA_EXEC} fslmaths'
+else
+    nvolcommand='${FSLDIR}/bin/fslnvols'
+    valcommand='${FSLDIR}/bin/fslval'
+    eddycommand='${FSLDIR}/bin/eddy_cuda'
+    qccommand='${FSLDIR}/bin/eddy_quad'
+    dticommand='${FSLDIR}/bin/dtifit'
+    mathcommand='${FSLDIR}/bin/fslmaths'
+fi
+
+#-------------------------------------------------------------------------------
 # Setup eddy
 #-------------------------------------------------------------------------------
 if [[ -d eddy ]]; then
@@ -104,7 +124,7 @@ else
 fi
 
 if [[ ! -f ${projdir}/${index} ]]; then
-    nvols=$(${FSLDIR}/bin/fslnvols dwi_orig)
+    nvols=$(${nvolcommand} dwi_orig)
     indx=""
     for ((i=1; i<=${nvols}; i+=1)); do indx="$indx 1"; done
     echo $indx > eddy/index.txt
@@ -113,7 +133,7 @@ else
 fi
 
 # For slice-to-volume correction
-nslices=$(${FSLDIR}/bin/fslval dwi_orig dim3)
+nslices=$(${valcommand} dwi_orig dim3)
 if [[ ${mp} -eq 0 ]]; then
     mp=$(expr ${nslices} / 4)   # Max. recommended by Jesper
 fi
@@ -146,7 +166,7 @@ fi
 #-------------------------------------------------------------------------------
 export SGE_ROOT=''
 echo -e '\n Running "eddy"!'
-${FSLDIR}/bin/eddy_cuda \
+${eddycommand} \
     --imain=dwi_orig \
     --mask=nodif_brain_mask \
     --index=eddy/index.txt \
@@ -168,7 +188,7 @@ mv tmp.json preproc.json
 # eddy QC
 #---------------------------------------
 [[ -d eddy/dwi_eddy.qc ]] && rm -r eddy/dwi_eddy.qc
-${FSLDIR}/bin/eddy_quad eddy/dwi_eddy \
+${qccommand} eddy/dwi_eddy \
     -idx eddy/index.txt -par eddy/acqparams.txt -m nodif_brain_mask \
     -b bvals -g bvecs -s eddy/slspec.txt
 
@@ -183,9 +203,9 @@ ${FSLDIR}/bin/eddy_quad eddy/dwi_eddy \
 #-------------------------------------------------------------------------------
 # Run dtifit
 #-------------------------------------------------------------------------------
-${FSLDIR}/bin/dtifit -k data -m nodif_brain_mask -o dtifit/dtifit \
+${dticommand} -k data -m nodif_brain_mask -o dtifit/dtifit \
     -r bvecs -b bvals --sse --save_tensor
-${FSLDIR}/bin/fslmaths dtifit/dtifit_L2 \
+${mathcommand} dtifit/dtifit_L2 \
     -add dtifit/dtifit_L3 \
     -div 2 \
     dtifit/dtifit_RD
