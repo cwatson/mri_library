@@ -9,38 +9,31 @@
 set -a
 
 usage() {
-    cat << !
-
- USAGE:
-    $(basename $0) -s|--subject SUBJECT [--long SESSION] [-h|--help]
-
-!
+ echo "USAGE:"
+ echo "    $(basename $0) -s|--subject SUBJECT [--long SESSION] [--acq LABEL]"
 }
 
-module load cuda/9.0
-export FSLMACHTYPE=linux_64-gcc6.3
-export FSLDIR=${STOCKYARD}/stampede2/apps/fsl/current
-export FSLDEVDIR=${FSLDIR}
-export CUDA=/opt/apps/cuda/9.0
-export COMPILE_GPU=1
-export FSLCONFDIR=${FSLDIR}/config
+module load tacc-singularity
 
 # Argument checking
 #-------------------------------------------------------------------------------
-TEMP=$(getopt -o hs: --long help,subject:,long: -- "$@")
+TEMP=$(getopt -o hs: --long help,subject:,long:,acq: -- "$@")
 [[ $? -ne 0 ]] && usage && exit
 eval set -- "${TEMP}"
 
 long=0
 sess=''
+acq=''
 while true; do
     case "$1" in
         -h|--help)      usage && exit ;;
         -s|--subject)   subj="$2"; shift ;;
         --long)         long=1; sess="$2"; shift ;;
+        --acq)          acq="$2"; shift ;;
         *)              break ;;
     esac
+    shift
 done
-source ${HOME}/code/mri_library/bin/dti_vars.sh
+source $(dirname "${BASH_SOURCE[0]}")/../bin/dti_vars.sh
 
-${FSLDIR}/bin/bedpostx_gpu ${projdir}/${resdir}
+${FSL6_CUDA_EXEC} bedpostx_gpu ${projdir}/${resdir}
