@@ -61,12 +61,13 @@ while true; do
     esac
 done
 
+scriptdir=$(dirname $(type -p dti_dicom2nifti_bet.sh))
 for subj in "$@"; do
     sub=${subj##*sub-}
     if [[ -z ${tgz} ]]; then
-        echo "${HOME}/code/mri_library/bin/dti_dicom2nifti_bet.sh -s ${sub} -t ${thresh} --long ${sess} --acq ${acq}" >> ${LAUNCHER_JOB_FILE}
+        echo "${scriptdir}/dti_dicom2nifti_bet.sh -s ${sub} -t ${thresh} --long ${sess} --acq ${acq}" >> ${LAUNCHER_JOB_FILE}
     else
-        echo "${HOME}/code/mri_library/bin/dti_dicom2nifti_bet.sh -s ${sub} -t ${thresh} --long ${sess} --acq ${acq} --tgz ${tgz}" >> ${LAUNCHER_JOB_FILE}
+        echo "${scriptdir}/dti_dicom2nifti_bet.sh -s ${sub} -t ${thresh} --long ${sess} --acq ${acq} --tgz ${tgz}" >> ${LAUNCHER_JOB_FILE}
     fi
 done
 

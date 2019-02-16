@@ -34,7 +34,8 @@ while true; do
     esac
     shift
 done
-export scriptdir="$( cd "$(dirname "${BASH_SOURCE[0]}")/../bin" > /dev/null && pwd)"
+
+export scriptdir=$(dirname $(type -p dti_vars.sh))
 source ${scriptdir}/dti_vars.sh
 
 ${FSL6_CUDA_EXEC} bedpostx_gpu ${projdir}/${resdir}
