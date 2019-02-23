@@ -11,4 +11,5 @@
 
 set -a
 module load tacc-singularity
-${HOME}/code/mri_library/bin/dti_eddy.sh "$@"
+export scriptdir=$(dirname $(type -p dti_eddy.sh))
+${scriptdir}/dti_eddy.sh "$@"

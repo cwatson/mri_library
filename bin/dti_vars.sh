@@ -10,7 +10,7 @@ usage() {
 !
 }
 
-if [[ ! -z ${scriptdir} ]]; then
+if [[ -z ${scriptdir} ]]; then
     scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 fi
 source ${scriptdir}/check_dependencies.sh
