@@ -14,6 +14,7 @@ usage() {
 }
 
 module load tacc-singularity
+module load cuda/9.0
 
 # Argument checking
 #-------------------------------------------------------------------------------
@@ -38,4 +39,5 @@ done
 export scriptdir=$(dirname $(type -p dti_vars.sh))
 source ${scriptdir}/dti_vars.sh
 
-${FSL6_CUDA_EXEC} bedpostx_gpu ${projdir}/${resdir}
+# 'singularity exec --nv /work/04484/cgwatson/singularity_cache/fsl-6.0.0-cuda-updated.simg'
+${FSL6_CUDA_UPDATED_EXEC} bedpostx_gpu ${projdir}/${resdir}
