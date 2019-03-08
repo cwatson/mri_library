@@ -78,6 +78,8 @@ while true; do
     shift
 done
 
+#TODO in the future this script can prob. be expanded for multiple modalities
+modality=dwi
 source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 
 #-------------------------------------------------------------------------------
