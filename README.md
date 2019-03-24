@@ -1,16 +1,20 @@
 # Scripts for processing brain MRI data
-This library is a collection of *Bash* and [Slurm](https://slurm.schedmd.com/)
-scripts (plus one [R](https://www.r-project.org/) function) written for the
-processing of *diffusion weighted imaging (DWI)* and *resting-state fMRI (rs-fMRI)* data. The scripts start with
-just the raw *DICOM* images and perform steps up to network creation, based on the results from
-[probtrackx2](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FDT/UserGuide#PROBTRACKX_-_probabilistic_tracking_with_crossing_fibres) for DWI
-and other methods for rs-fMRI.
+This library is a collection of *Bash* scripts, [Slurm](https://slurm.schedmd.com/)
+scripts, and [R](https://www.r-project.org/) functions written for the processing
+of *diffusion weighted imaging (DWI)* and *resting-state fMRI (rs-fMRI)* data.
+The scripts start with just the raw *DICOM* images and perform steps up to network
+creation, based on the results from
+[probtrackx2](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FDT/UserGuide#PROBTRACKX_-_probabilistic_tracking_with_crossing_fibres)
+for DWI and other methods for rs-fMRI.
 
-The code has been written to work with projects following the [Brain Imaging Data Structure (BIDS)](http://bids.neuroimaging.io/).
-That is, if you only supply a `tar.gz` file with *DICOM* images, the appropriate BIDS-compliant directories will be created.
+The code has been written to work with projects following the
+[Brain Imaging Data Structure (BIDS)](http://bids.neuroimaging.io/).
+That is, if you only supply a `tar.gz` file with *DICOM* images, the appropriate
+BIDS-compliant directories will be created.
 Note that this only applies to inputs or minimal processing (e.g., conversion to *NIfTI*);
 while there are some [BIDS Derivatives](http://bids.neuroimaging.io/#get_involved)
-proposals, nothing has found consistent use (to my knowledge). So I place some output directories which will be described later.
+proposals, nothing has found consistent use (to my knowledge). So I place some
+output directories which will be described later.
 
 # Table of Contents
 <!-- vim-markdown-toc GFM -->
@@ -20,11 +24,12 @@ proposals, nothing has found consistent use (to my knowledge). So I place some o
         * [Parcellations](#parcellations)
     * [Software](#software)
 * [Installation](#installation)
-    * [FSL](#fsl)
     * [dcmtk](#dcmtk)
     * [dcm2niix](#dcm2niix)
     * [jo](#jo)
     * [jq](#jq)
+    * [FSL](#fsl)
+    * [Freesurfer](#freesurfer)
 * [Processing Steps](#processing-steps)
     * [DWI](#dwi)
 * [Variables](#variables)
@@ -36,10 +41,12 @@ proposals, nothing has found consistent use (to my knowledge). So I place some o
 <!-- vim-markdown-toc -->
 # Requirements
 ## Files/Formats and Directories
-The *project directory* is where all scripts will be run from; its variable is `${projdir}`.
-It is the *top-level* directory for your project; i.e., all relevant data should be accessible from here.
+The *project directory* is where all scripts will be run from;
+its variable is `${projdir}` and is automatically set as the working directory.
+It is the *top-level* directory for your project; i.e., all relevant data should
+be accessible from here.
 
-When running the initial scripts, you will need to provide 1 of the following:
+When running the initial scripts, you will need to provide one of the following:
 1. A `sourcedata` directory, which contains *BIDS*-compliant subject directories
     and the *DICOM* files in `${target}_dicom.tar.gz` within that directory tree.
 
@@ -63,17 +70,22 @@ The subject directories (within `freesurfer`) should at least share the same dir
 In addition to good-quality T1-weighted and DWI data, some software requirements are:
 
 * [`dcmtk`](https://dicom.offis.de/dcmtk.php.en) for reading from the *DICOM* headers
+* A recent version of [`dcm2niix`](https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage)
+    * The version I used at the time of writing is `v1.0.20181125  GCC4.8.5 (64-bit Linux)`
 * [`jo`](https://github.co/jpmens/jo) for writing out *JSON* files containing the parameters used for each tool.
     For example, it will record the `-f` value used with `bet`.
 * [`jq`](https://stedolan.github.io/jq) also processes *JSON* files.
-* A recent version of [`dcm2niix`](https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage)
-    * The version I used at the time of writing is `v1.0.20181125  GCC4.8.5 (64-bit Linux)`
 * [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki) version >= *6.0.0*
 * The [ImageMagick suite](https://www.imagemagick.org/script/index.php)
     * Available in the repositories for *Red Hat*-based systems (*RHEL*, *CentOS*, *Scientific Linux*)
 * [`eddyqc`](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/eddyqc) (bundled with *FSL* since *v6.0.0*)
 * [Freesurfer](https://surfer.nmr.mgh.harvard.edu/) version >= *5.3.0*
     * Required for parcellation, the results of which will be used in the tractography step
+* [R](https://cran.r-project.org/) is required for `eddy`-related movement QC. `R` is available on all major OS's. Necessary packages include:
+    * [optparse](https://cran.r-project.org/web/packages/optparse/index.html)
+    * [data.table](https://cran.r-project.org/web/packages/data.table/index.html)
+    * [ggplot2](https://cran.r-project.org/web/packages/ggplot2/index.html)
+    * [gridExtra](https://cran.r-project.org/web/packages/gridExtra/index.html)
 * (*Optional*) A [CUDA](https://developer.nvidia.com/cuda-zone)-capable GPU
   (for [`eddy_cuda`](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/eddy/UsersGuide) and
   [`bedpostx_gpu`](https://users.fmrib.ox.ac.uk/~moisesf/Bedpostx_GPU/))
@@ -87,14 +99,6 @@ You can simply clone the repository and add it to your search path. Example:
 ``` bash
 git clone https://github.com/cwatson/mri_library.git
 echo "export PATH=PATH:${PWD}/mri_library/bin" >> ~/.bash_profile
-```
-
-## FSL
-To install the latest version of *FSL* (which is *v6.0.0* as of October 2018), you simply run their installer.
-This requires that you already have an older version of *FSL* on your system.
-``` bash
-cd ${FSLDIR}
-python fslinstaller.py
 ```
 
 ## dcmtk
@@ -141,21 +145,33 @@ This should be in repositories for all major Linux OS's.
 For both *CentOS 6* and *CentOS 7*, it is in the `epel` repository,
 with versions `v1.3.2` and `v1.5.1`, respectively.
 
+## FSL
+To install the latest version of *FSL* (which is *v6.0.0* as of October 2018), you simply run their installer.
+This requires that you already have an older version of *FSL* on your system.
+``` bash
+cd ${FSLDIR}
+python fslinstaller.py
+```
+
+## Freesurfer
+You can find download and install instructions at the [Freesurfer wiki](https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall).
+
 # Processing Steps
 ## DWI
 The scripts will perform the following steps. *Freesurfer*'s `recon-all` should be run before this (or before step 5, at least).
 1. Run `dti_dicom2nift_bet.sh` to extract *DICOM* files and convert to *NIfTI* using `dcm2niix`, skullstrip, and create images for QC purposes.
     <ol type="a">
-    <li>Renames and move the <code>tgz</code> file to the correct, <em>BIDS</em>-compatible filename and location (if necessary)</li>
+    <li>Renames and moves the <code>tgz</code> file to the correct, <em>BIDS</em>-compatible filename and location (if necessary)</li>
     <li>Extracts the <em>DICOM</em> files from the <code>tgz</code> file and convert to <em>NIfTI</em> (using <code>dcm2niix</code>) </li>
     <li>Moves the <code>nii.gz</code>, <code>bvecs</code>, <code>bvals</code>, and <code>json</code>
         files to the appropriate subject directory under <code>rawdata</code>.</li>
+    <li>Checks the image dimensions against the study's dimensions (specified by the user in a text file). If this fails, the subject's data are moved to a directory called <code>unusable</code>.</li>
     <li>If there are multiple <em>b0</em> volumes, they will be averaged when creating <code>nodif.nii.gz</code></li>
     <li>Skullstrips the data using <a href="https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/BET/UserGuide"><code>bet</code></a>.</li>
     <li>Checks the quality by running <code>dti_qc_bet.sh</code> and viewing the resultant images.
         See <a href="https://imgur.com/a/rkxkgV4">example images</a>.</li>
     <li>Re-run if the skullstrip wasn't acceptable; change the <code>bet</code> threshold by passing
-        the <code>--rerun</code> and <code>-t</code>/<code>--threshold</code> options to <em>Step 1</em>.</li>
+        the <code>--rerun</code> and <code>-t|--threshold</code> options to <em>Step 1</em>.</li>
     </ol>
 
     ``` bash
