@@ -190,7 +190,7 @@ mv tmp.json preproc.json
 [[ -d eddy/dwi_eddy.qc ]] && rm -r eddy/dwi_eddy.qc
 ${qccommand[@]} eddy/dwi_eddy \
     -idx eddy/index.txt -par eddy/acqparams.txt -m nodif_brain_mask \
-    -b bvals -g bvecs -s eddy/slspec.txt
+    -b bvals -g bvecs -s eddy/slspec.txt --cnr_maps
 
 # tSNR
 #---------------------------------------

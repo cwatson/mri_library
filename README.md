@@ -6,6 +6,8 @@ The scripts start with just the raw *DICOM* images and perform steps up to netwo
 creation, based on the results from
 [probtrackx2](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FDT/UserGuide#PROBTRACKX_-_probabilistic_tracking_with_crossing_fibres)
 for DWI and other methods for rs-fMRI.
+The *Slurm* scripts are appropriate for use on a *high performance computing (HPC)* system/cluster;
+I use the [Texas Advanced Computing Center (TACC)](https://www.tacc.utexas.edu/) systems.
 
 The code has been written to work with projects following the
 [Brain Imaging Data Structure (BIDS)](http://bids.neuroimaging.io/).
@@ -54,11 +56,11 @@ When running the initial scripts, you will need to provide one of the following:
     (with optional information in square brackets):
     ``` bash
     sub-<studyID>[_ses-<sessionID>][_acq-<acquisition>]_dwi_dicom.tar.gz
-    sub-<studyID>[_ses-<sessionID>]_task-rest[_acq-<acquisition>][_run-<runID>]_dicom.tar.gz`
+    sub-<studyID>[_ses-<sessionID>]_task-rest[_acq-<acquisition>][_run-<runID>]_dicom.tar.gz
     ```
     In this case, you do not have to use the `--tgz` option to `dti_dicom2nifti_bet.sh`.
-2. A `tar.gz` that you provide as input to the initial script, `dti_dicom2nifti_bet.sh`.
-    This file *MUST* be directly in `${projdir}`, or you must provide the full path.
+2. A `.tar.gz` that you provide as input to the initial script, `dti_dicom2nifti_bet.sh`.
+    This `.tar.gz` file *MUST* be either directly in `${projdir}` or you must provide the full path.
     This will be renamed to `${target}_dicom.tar.gz` (see above) and placed under the `sourcedata` directory.
 
 ### Parcellations
@@ -101,6 +103,7 @@ git clone https://github.com/cwatson/mri_library.git
 echo "export PATH=PATH:${PWD}/mri_library/bin" >> ~/.bash_profile
 ```
 
+If you are on a cluster or other system that uses, e.g., `.bashrc` instead, you may have to add the path manually.
 ## dcmtk
 For *CentOS 7*, at least, this is available in the `nux-dextop` repository. If you don't already have this repo, run the following as `root`:
 ``` bash
@@ -127,8 +130,8 @@ make install
 
 ## jo
 This utility can generate *JSON* from the command line.
-To install it, follow the instructions on the [repository page](https://github.com/jpmens/jo).
-(you will also need [`automake`](https://www.gnu.org/software/automake) and [`autoconf`](https://www.gnu.org/software/autoconf) ).
+To install it, follow the instructions on the [jo repository page](https://github.com/jpmens/jo).
+You will also need [`automake`](https://www.gnu.org/software/automake) and [`autoconf`](https://www.gnu.org/software/autoconf).
 ``` bash
 cd /usr/local
 git clone git://github.com/jpmens/jo.git
@@ -165,7 +168,7 @@ The scripts will perform the following steps. *Freesurfer*'s `recon-all` should 
     <li>Extracts the <em>DICOM</em> files from the <code>tgz</code> file and convert to <em>NIfTI</em> (using <code>dcm2niix</code>) </li>
     <li>Moves the <code>nii.gz</code>, <code>bvecs</code>, <code>bvals</code>, and <code>json</code>
         files to the appropriate subject directory under <code>rawdata</code>.</li>
-    <li>Checks the image dimensions against the study's dimensions (specified by the user in a text file). If this fails, the subject's data are moved to a directory called <code>unusable</code>.</li>
+    <li>Checks the image dimensions against the study's dimensions (specified by the user in a text file) via <code>qc_basic.sh</code>. If this fails, the subject's data are moved to a directory called <code>unusable</code>.</li>
     <li>If there are multiple <em>b0</em> volumes, they will be averaged when creating <code>nodif.nii.gz</code></li>
     <li>Skullstrips the data using <a href="https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/BET/UserGuide"><code>bet</code></a>.</li>
     <li>Checks the quality by running <code>dti_qc_bet.sh</code> and viewing the resultant images.
