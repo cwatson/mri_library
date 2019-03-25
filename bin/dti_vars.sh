@@ -15,6 +15,8 @@ usage() {
     sub-s001_ses-retest_acq-multiband_dir-PA_dwi.nii.gz
     sub-s001_ses-retest_task-rest_bold.nii.gz
 
+ This script is not meant to be called on its own. It is called from within most
+ processing scripts to setup the appropriate directories and filename targets.
 !
 }
 

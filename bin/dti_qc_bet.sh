@@ -9,6 +9,9 @@ usage() {
  "overlay" and "slicer" programs from FSL, along with programs from
  "ImageMagick".
 
+ This is not meant to be called from the command line. It is called from within
+ "dti_dicom2nifti_bet.sh".
+
 !
 }
 

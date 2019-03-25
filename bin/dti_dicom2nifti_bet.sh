@@ -145,6 +145,8 @@ if [[ ${rerun} -eq 0 ]]; then
     ${FSLDIR}/bin/fslmaths lowb -Tmean nodif
     rm lowb*
 
+    # Check image dimensions
+    source ${scriptdir}/qc_basic.sh
 else
     cd ${projdir}/${resdir}
 fi
