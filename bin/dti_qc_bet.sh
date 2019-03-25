@@ -19,8 +19,8 @@ usage() {
 #-------------------------------------------------------------------------------
 lower=$(${FSLDIR}/bin/fslstats nodif_brain -P 1)
 upper=$(${FSLDIR}/bin/fslstats nodif_brain -P 90)
-${FSLDIR}/bin/overlay 1 0 nodif -a nodif_brain ${lower} ${upper} qc_bet/qc_bet
-cd qc_bet
+${FSLDIR}/bin/overlay 1 0 nodif -a nodif_brain ${lower} ${upper} qc/bet/qc_bet
+cd qc/bet
 ${FSLDIR}/bin/slicer qc_bet -s 2 -S 2 1200 qc_bet_ax.png
 
 # Get screenshots for the middle 2/3

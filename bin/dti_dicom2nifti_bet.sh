@@ -86,7 +86,7 @@ source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
 # Extract and convert DICOMs, if necessary
 #-------------------------------------------------------------------------------
 if [[ ${rerun} -eq 0 ]]; then
-    mkdir -p ${rawdir} ${resdir}/qc_bet
+    mkdir -p ${rawdir} ${resdir}/qc/bet
     cd ${projdir}/${srcdir}
 
     # Extract first file, determine Manufacturer,

@@ -99,6 +99,7 @@ if [[ ! -z ${FSL6_CUDA_EXEC} ]]; then
     qccommand=(${FSL6_CUDA_EXEC} eddy_quad)
     dticommand=(${FSL6_CUDA_EXEC} dtifit)
     mathcommand=(${FSL6_CUDA_EXEC} fslmaths)
+    statcommand=(${FSL6_CUDA_EXEC} fslstats)
 else
     nvolcommand=(${FSLDIR}/bin/fslnvols)
     valcommand=(${FSLDIR}/bin/fslval)
@@ -106,6 +107,7 @@ else
     qccommand=(${FSLDIR}/bin/eddy_quad)
     dticommand=(${FSLDIR}/bin/dtifit)
     mathcommand=(${FSLDIR}/bin/fslmaths)
+    statcommand=(${FSLDIR}/bin/fslstats)
 fi
 
 #-------------------------------------------------------------------------------
@@ -187,18 +189,10 @@ mv tmp.json preproc.json
 
 # eddy QC
 #---------------------------------------
-[[ -d eddy/dwi_eddy.qc ]] && rm -r eddy/dwi_eddy.qc
-${qccommand[@]} eddy/dwi_eddy \
+[[ -d qc/eddy ]] && rm -r qc/eddy
+${qccommand[@]} eddy/dwi_eddy -o qc/eddy
     -idx eddy/index.txt -par eddy/acqparams.txt -m nodif_brain_mask \
     -b bvals -g bvecs -s eddy/slspec.txt
-
-# tSNR
-#---------------------------------------
-#${FSLDIR}/bin/fslmaths data -Tmean mean
-#${FSLDIR}/bin/fslmaths data -Tstd std
-#${FSLDIR}/bin/fslmaths mean -div std tsnr
-#${FSLDIR}/bin/fslmaths tsnr -mas nodif_brain_mask tsnr_mask
-#echo $(${FSLDIR}/bin/fslstats tsnr_mask -l 0 -M) >> tsnr.txt
 
 #-------------------------------------------------------------------------------
 # Run dtifit
