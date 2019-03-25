@@ -9,13 +9,18 @@ usage() {
  Setup and run ${myblue}eddy$(tput sgr0) on DTI data, and then calculate some QC metrics from
  ${myblue}eddy_quad$(tput sgr0). If you do not have ${myblue}acqparams.txt$(tput sgr0), ${myblue}index.txt$(tput sgr0), or ${myblue}slspec.txt$(tput sgr0) files,
  then generic ones will be created (with values from the FSL wiki).
+
  If you have files that apply to all study subjects, you can pass those in via
  function arguments; these should be located in the ${myblue}${projdir}$(tput sgr0) (where the script
  is called from).
 
+ The ${mymagenta}--fd-cutoff$(tput sgr0) option lets you choose a cutoff for classifying outliers based
+ on ${myred}frame displacement (FD)$(tput sgr0). The default is 0.5 mm.
+
  ${myyellow}USAGE:${mygreen}
     $(basename $0) -s|--subject SUBJECT [--long SESSION] [--acq LABEL]
         [--params FILE] [--index FILE] [--mp MPORDER] [--slspec FILE]
+        [--fd-cutoff MM]
 
  ${myyellow}OPTIONS:
      ${mymagenta}-h, --help$(tput sgr0)
@@ -47,6 +52,10 @@ usage() {
      ${mymagenta}--slspec [FILE]$(tput sgr0)
      A text file that will serve as the ${myblue}slspec$(tput sgr0) argument to ${myblue}eddy$(tput sgr0)
 
+     ${mymagenta}--fd-cutoff [MM]$(tput sgr0)
+     The cutoff (in mm) to use when classifying outliers based on frame
+     displacement (FD). The default is 0.5 mm.
+
  ${myyellow}EXAMPLES:${mygreen}
      $(basename $0) -s SP7180 --long 01 --acq iso --mp 6 --slspec my_slspec.txt
 
@@ -57,7 +66,7 @@ usage() {
 #-------------------------------------------------------------------------------
 [[ $# == 0 ]] && usage && exit
 
-TEMP=$(getopt -o hs: --long help,subject:,long:,acq:,params:,index:,mp:,slspec: -- "$@")
+TEMP=$(getopt -o hs: --long help,subject:,long:,acq:,params:,index:,mp:,slspec:,fd-cutoff -- "$@")
 [[ $? -ne 0 ]] && usage && exit 1
 eval set -- "${TEMP}"
 
@@ -65,6 +74,7 @@ long=0
 sess=''
 acq=''
 mp=0
+fd=0.5
 while true; do
     case "$1" in
         -h|--help)      usage && exit ;;
@@ -75,6 +85,7 @@ while true; do
         --index)        index="$2"; shift ;;
         --mp)           mp="$2"; shift ;;
         --slspec)       slspec="$2"; shift ;;
+        --fd-cutoff)    fd="$2"; shift ;;
         *)              break ;;
     esac
     shift
@@ -179,6 +190,7 @@ ${eddycommand[@]} \
     --mporder=${mp} \
     --slspec=eddy/slspec.txt \
     --residuals \
+    --rms \
     --cnr_maps \
     --out=eddy/dwi_eddy
 ln eddy/dwi_eddy.nii.gz data.nii.gz #TODO change to outlier free?
@@ -193,6 +205,10 @@ mv tmp.json preproc.json
 ${qccommand[@]} eddy/dwi_eddy -o qc/eddy
     -idx eddy/index.txt -par eddy/acqparams.txt -m nodif_brain_mask \
     -b bvals -g bvecs -s eddy/slspec.txt
+echo "${projdir}/${resdir}/qc/eddy/" >> ${projdir}/tractography/quad_folders.txt
+
+# Get other QC measures
+source ${scriptdir}/dti_qc_other.sh
 
 #-------------------------------------------------------------------------------
 # Run dtifit

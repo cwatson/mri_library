@@ -11,5 +11,6 @@
 
 set -a
 module load tacc-singularity
+module load Rstats
 export scriptdir=$(dirname $(type -p dti_eddy.sh))
 ${scriptdir}/dti_eddy.sh "$@"

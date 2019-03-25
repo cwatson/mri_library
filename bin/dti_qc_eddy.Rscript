@@ -1,0 +1,46 @@
+#! /usr/bin/env Rscript
+#
+# Write a PDF containing plots of movement paraemters and frame displacement,
+# and write a CSV with the data.
+#
+# Example:
+#   Rscript ~/Dropbox/mri_library/bin/dti_qc_eddy.Rscript -s SP7102 --long 01
+
+suppressMessages(library(optparse))
+suppressMessages(library(data.table))
+suppressMessages(library(ggplot2))
+suppressMessages(library(gridExtra))
+
+option_list <- list(
+  make_option(c('-s', '--subject'), action='store', type='character', help='Subject ID'),
+  make_option(c('--long'), action='store', type='character', help='Session ID'),
+  make_option(c('--fd-cutoff'), action='store', type='numeric', dest='fd', help='FD cutoff (in mm)')
+)
+opts <- parse_args(OptionParser(option_list=option_list))
+
+# Set the output directory
+outdir <- paste0('tractography/sub-', opts$subject, '/')
+if (!is.null(opts$long) && opts$long != '') {
+  outdir <- paste0(outdir, 'ses-', opts$long, '/')
+}
+qcdir <- paste0(outdir, 'dwi/qc/eddy/')
+
+# Get the path of the Rscript, and source other functions
+file_arg <- commandArgs()[4]
+file_path <- gsub('--file=', '', file_arg)
+file_path <- gsub('qc_eddy.Rscript', '', file_path)
+source(paste0(file_path, "../R/realignment_params.R"))
+
+rp.m <- import_rp(opts$subject, session_id=opts$long, cutoff=opts$fd)
+
+# Write PDF of plots and text files with QC measures
+pdf(NULL)
+plots <- plot_rp(opts$subject, session_id=opts$long, cutoff=opts$fd)
+write.csv(rp.m$DT, paste0(qcdir, 'movement_params.csv'), quote=FALSE, row.names=FALSE)
+mean_fd <- rp.m$DT[, mean(FD, na.rm=TRUE)]
+n_outl_fd <- rp.m$DT[!is.na(outl), .N]
+write.table(mean_fd, paste0(qcdir, 'frame_displacement_mean.txt'),
+            quote=FALSE, row.names=FALSE, col.names=FALSE)
+write.table(n_outl_fd, paste0(qcdir, 'frame_displacement_numOutliers.txt'),
+            quote=FALSE, row.names=FALSE, col.names=FALSE)
+ggsave(paste0(qcdir, 'eddy_mvmnt.pdf'), plots, width=8.5, height=11)
