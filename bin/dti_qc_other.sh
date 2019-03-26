@@ -15,7 +15,9 @@ usage() {
        non-brain voxels. Higher is better.
     3. Number of eddy outliers
     4. Mean frame displacement (FD)
-    5. Number of outliers based on FD (using a cutoff of 0.5mm)
+    5. Root-mean-square (RMS) of FD
+    6. Number of outliers based on FD (using a cutoff of 0.5mm)
+    7-9. RMS of translations, rotations, and translations & rotations combined
 
 !
 }
@@ -49,9 +51,19 @@ Rscript ${scriptdir}/dti_qc_eddy.Rscript -s ${subj} --long ${sess} --fd-cutoff $
 #-------------------
 mean_fd=$(cat qc/eddy/frame_displacement_mean.txt)
 
-# 5. # of FD outliers
+# 5. RMS of FD
+#-------------------
+rms_fd=$(cat qc/eddy/frame_displacement_rms.txt)
+
+# 6. # of FD outliers
 #-------------------
 n_outl_fd=$(cat qc/eddy/frame_displacement_numOutliers.txt)
+
+# 7-9. RMS translation, rotation, and all
+#-------------------
+rms_xyz=$(cat qc/eddy/rms_translation.txt)
+rms_rot=$(cat qc/eddy/rms_rotation.txt)
+rms_all=$(cat qc/eddy/rms_all.txt)
 
 # Write to file
 #-------------------------------------------------------------------------------
@@ -74,4 +86,8 @@ echo "${start_str},dwi_tsnr,${tsnr_mean}" >> ${qc_file}
 echo "${start_str},dwi_snr,${snr_mean}" >> ${qc_file}
 echo "${start_str},dwi_numOutliers_eddy,${n_outl_eddy}" >> ${qc_file}
 echo "${start_str},dwi_mean_FD,${mean_fd}" >> ${qc_file}
+echo "${start_str},dwi_rms_FD,${rms_fd}" >> ${qc_file}
 echo "${start_str},dwi_numOutliers_FD,${n_outl_fd}" >> ${qc_file}
+echo "${start_str},dwi_rms_xyz,${rms_xyz}" >> ${qc_file}
+echo "${start_str},dwi_rms_rot,${rms_rot}" >> ${qc_file}
+echo "${start_str},dwi_rms_all,${rms_all}" >> ${qc_file}
