@@ -202,7 +202,7 @@ mv tmp.json preproc.json
 # eddy QC
 #---------------------------------------
 [[ -d qc/eddy ]] && rm -r qc/eddy
-${qccommand[@]} eddy/dwi_eddy -o qc/eddy
+${qccommand[@]} eddy/dwi_eddy -o qc/eddy \
     -idx eddy/index.txt -par eddy/acqparams.txt -m nodif_brain_mask \
     -b bvals -g bvecs -s eddy/slspec.txt
 echo "${projdir}/${resdir}/qc/eddy/" >> ${projdir}/tractography/quad_folders.txt
