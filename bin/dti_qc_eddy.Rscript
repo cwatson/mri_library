@@ -26,9 +26,10 @@ if (!is.null(opts$long) && opts$long != '') {
 qcdir <- paste0(outdir, 'dwi/qc/eddy/')
 
 # Get the path of the Rscript, and source other functions
+cat(commandArgs(), '\n')
 file_arg <- commandArgs()[4]
 file_path <- gsub('--file=', '', file_arg)
-file_path <- gsub('qc_eddy.Rscript', '', file_path)
+file_path <- gsub('dti_qc_eddy.Rscript', '', file_path)
 source(paste0(file_path, "../R/realignment_params.R"))
 
 rp.m <- import_rp(opts$subject, session_id=opts$long, cutoff=opts$fd)
