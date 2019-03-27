@@ -37,7 +37,7 @@ if [[ -f ${size_file} ]]; then
     sz_study=$(cat ${size_file})
 else
     echo "File ${size_file} does not exist."
-    exit 112    #TODO update later
+    exit 73
 fi
 sz_sub=$(check_dims)
 if [[ ${sz_sub} != ${sz_study} ]]; then
@@ -46,5 +46,5 @@ if [[ ${sz_sub} != ${sz_study} ]]; then
     mkdir -p unusable/{${srcdir},${rawdir}}
     mv sourcedata/sub-${subj} unusable/sourcedata/
     mv rawdata/sub-${subj} unusable/rawdata/
-    exit 113
+    exit 74
 fi

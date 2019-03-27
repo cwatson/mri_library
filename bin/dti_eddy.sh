@@ -67,7 +67,7 @@ usage() {
 [[ $# == 0 ]] && usage && exit
 
 TEMP=$(getopt -o hs: --long help,subject:,long:,acq:,params:,index:,mp:,slspec:,fd-cutoff -- "$@")
-[[ $? -ne 0 ]] && usage && exit 1
+[[ $? -ne 0 ]] && usage && exit
 eval set -- "${TEMP}"
 
 long=0
@@ -93,7 +93,7 @@ done
 
 if [[ -z ${subj} ]]; then
     echo "Please provide a subject ID."
-    exit 11
+    exit 76
 fi
 
 source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
@@ -127,7 +127,7 @@ fi
 if [[ -d eddy ]]; then
     echo "'eddy' has already been run."
     echo "Please remove directory if you wish to re-run."
-    exit 12
+    exit 77
 fi
 mkdir -p eddy dtifit
 if [[ ! -f ${projdir}/${params} ]]; then

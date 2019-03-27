@@ -55,7 +55,7 @@ usage() {
 [[ $# == 0 ]] && usage && exit
 
 TEMP=$(getopt -o hs:t: --long help,subject:,threshold:,rerun,long:,acq:,tgz: -- "$@")
-[[ $? -ne 0 ]] && usage && exit 1
+[[ $? -ne 0 ]] && usage && exit
 eval set -- "${TEMP}"
 
 thresh=0.5
@@ -98,12 +98,12 @@ if [[ ${rerun} -eq 0 ]]; then
         else
             echo "Input file ${tgz} is invalid."
             echo "Please make sure to use the full path to the file."
-            exit 9
+            exit 71
         fi
     fi
     if [[ ! -f ${target}_dicom.tar.gz ]]; then
         echo "Could not find DICOM 'tar' archive."
-        exit 10
+        exit 72
     fi
     firstfile=$(tar tf ${target}_dicom.tar.gz | grep -v '/$' | head -1)
     tar xf ${target}_dicom.tar.gz ${firstfile} --xform='s#^.+/##x'

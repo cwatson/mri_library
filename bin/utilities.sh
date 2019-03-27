@@ -33,7 +33,7 @@ check_sw() {
 log_sw_info() {
     if [[ $# -lt 1 ]]; then
         echo "Please supply the name of a binary/program."
-        exit 10
+        exit 75
     elif [[ $# -lt 2 ]]; then
         outfile=preproc.json
         if [[ ! -f ${outfile} ]]; then
