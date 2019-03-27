@@ -39,8 +39,8 @@ plots <- plot_rp(opts$subject, session_id=opts$long, cutoff=opts$fd)
 write.csv(rp.m$DT, paste0(qcdir, 'movement_params.csv'), quote=FALSE, row.names=FALSE)
 
 # Calculate some more QC metrics
-sub_dir <- paste0('tractography/sub-', subject_id, '/')
-if (!is.null(session_id)) sub_dir <- paste0(sub_dir, 'ses-', session_id, '/')
+sub_dir <- paste0('tractography/sub-', opts$subject, '/')
+if (!is.null(opts$long)) sub_dir <- paste0(sub_dir, 'ses-', opts$long, '/')
 sub_dir <- paste0(sub_dir, 'dwi/eddy/')
 rms <- fread(paste0(sub_dir, 'dwi_eddy.eddy_movement_rms'))
 rms_eddy <- rms[2:.N, mean(V2)]
