@@ -39,6 +39,12 @@ plots <- plot_rp(opts$subject, session_id=opts$long, cutoff=opts$fd)
 write.csv(rp.m$DT, paste0(qcdir, 'movement_params.csv'), quote=FALSE, row.names=FALSE)
 
 # Calculate some more QC metrics
+sub_dir <- paste0('tractography/sub-', subject_id, '/')
+if (!is.null(session_id)) sub_dir <- paste0(sub_dir, 'ses-', session_id, '/')
+sub_dir <- paste0(sub_dir, 'dwi/eddy/')
+rms <- fread(paste0(sub_dir, 'dwi_eddy.eddy_movement_rms'))
+rms_eddy <- rms[2:.N, mean(V2)]
+
 mean_fd <- rp.m$DT[, mean(FD, na.rm=TRUE)]
 rms_fd <- rp.m$DT[, sqrt(sum(FD^2) / .N)]
 n_outl_fd <- rp.m$DT[!is.na(outl), .N]
@@ -47,6 +53,8 @@ rms_rot <- rp.m$DT[, sqrt(sum(pitch^2 + roll^2 + yaw^2) / .N)]
 rms_all <- rp.m$DT[, sqrt(sum(x^2 + y^2 + z^2 + pitch^2 + roll^2 + yaw^2) / .N)]
 
 # Write simple text files of the QC metrics
+write.table(rms_eddy, paste0(qcdir, 'rms_avg_rel_motion.txt'),
+            quote=FALSE, row.names=FALSE, col.names=FALSE)
 write.table(mean_fd, paste0(qcdir, 'frame_displacement_mean.txt'),
             quote=FALSE, row.names=FALSE, col.names=FALSE)
 write.table(rms_fd, paste0(qcdir, 'frame_displacement_rms.txt'),

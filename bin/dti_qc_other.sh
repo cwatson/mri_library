@@ -5,9 +5,7 @@ set -a
 usage() {
     cat << !
 
- Calculate some QC metrics for DWI data. These were taken from the Preprocessed
- Connectomes Project (PCP)'s "Quality Assessment Protocol (QAP)"; see details at
- https://preprocessed-connectomes-project.org/quality-assessment-protocol/
+ Calculate some QC metrics for DWI data.
 
     1. Temporal signal-to-noise (tSNR): mean divided by standard deviation of
        within-mask voxels across all DWI volumes.
@@ -18,6 +16,8 @@ usage() {
     5. Root-mean-square (RMS) of FD
     6. Number of outliers based on FD (using a cutoff of 0.5mm)
     7-9. RMS of translations, rotations, and translations & rotations combined
+    10. Average relative motion; obtained from the 2nd column of the
+        "eddy_movement_rms" file
 
 !
 }
@@ -61,11 +61,12 @@ rms_fd=$(cat qc/eddy/frame_displacement_rms.txt)
 #-------------------
 n_outl_fd=$(cat qc/eddy/frame_displacement_numOutliers.txt)
 
-# 7-9. RMS translation, rotation, and all
+# 7-10. RMS translation, rotation, and all
 #-------------------
 rms_xyz=$(cat qc/eddy/rms_translation.txt)
 rms_rot=$(cat qc/eddy/rms_rotation.txt)
 rms_all=$(cat qc/eddy/rms_all.txt)
+rms_eddy=$(cat qc/eddy/rms_avg_rel_motion.txt)
 
 # Write to file
 #-------------------------------------------------------------------------------
@@ -93,3 +94,4 @@ echo "${start_str},dwi_numOutliers_FD,${n_outl_fd}" >> ${qc_file}
 echo "${start_str},dwi_rms_xyz,${rms_xyz}" >> ${qc_file}
 echo "${start_str},dwi_rms_rot,${rms_rot}" >> ${qc_file}
 echo "${start_str},dwi_rms_all,${rms_all}" >> ${qc_file}
+echo "${start_str},dwi_eddy_mvmnt_rms,${rms_eddy}" >> ${qc_file}
