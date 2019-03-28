@@ -24,7 +24,7 @@ usage() {
 # Check dimensions of images; if they don't match, put into "unusable"
 #-------------------------------------------------------------------------------
 check_dims() {
-    im=${rawdir}/${target}
+    im=${projdir}/${rawdir}/${target}
     x=$(${FSLDIR}/bin/fslval ${im} dim1)
     y=$(${FSLDIR}/bin/fslval ${im} dim2)
     z=$(${FSLDIR}/bin/fslval ${im} dim3)
@@ -43,8 +43,10 @@ sz_sub=$(check_dims)
 if [[ ${sz_sub} != ${sz_study} ]]; then
     echo "Subject ${subj} does not have correct dimensions"
     echo 'Moving data to "unusable" directory.'
+    cd ${projdir}
     mkdir -p unusable/{${srcdir},${rawdir}}
     mv sourcedata/sub-${subj} unusable/sourcedata/
     mv rawdata/sub-${subj} unusable/rawdata/
+    mv tractography/sub-${subj} unusable/tractography/
     exit 74
 fi
