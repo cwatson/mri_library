@@ -36,8 +36,8 @@ while true; do
     shift
 done
 
-export scriptdir=$(dirname $(type -p dti_vars.sh))
-source ${scriptdir}/dti_vars.sh
+export scriptdir=$(dirname $(type -p setup_vars.sh))
+source ${scriptdir}/setup_vars.sh
 
 # 'singularity exec --nv /work/04484/cgwatson/singularity_cache/fsl-6.0.0-cuda-updated.simg'
 ${FSL6_CUDA_UPDATED_EXEC} bedpostx_gpu ${projdir}/${resdir}
