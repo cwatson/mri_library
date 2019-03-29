@@ -96,7 +96,7 @@ if [[ -z ${subj} ]]; then
     exit 76
 fi
 
-source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
+source $(dirname "${BASH_SOURCE[0]}")/setup_vars.sh
 cd ${projdir}/${resdir}
 
 #-------------------------------------------------------------------------------

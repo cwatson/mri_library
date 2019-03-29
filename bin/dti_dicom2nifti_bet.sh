@@ -80,7 +80,7 @@ done
 
 #TODO in the future this script can prob. be expanded for multiple modalities
 modality=dwi
-source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
+source $(dirname "${BASH_SOURCE[0]}")/setup_vars.sh
 
 #-------------------------------------------------------------------------------
 # Extract and convert DICOMs, if necessary
