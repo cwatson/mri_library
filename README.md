@@ -23,6 +23,8 @@ output directories which will be described later.
 
 * [Requirements](#requirements)
     * [Files/Formats and Directories](#filesformats-and-directories)
+        * [DICOM files](#dicom-files)
+        * [Basic QC](#basic-qc)
         * [Parcellations](#parcellations)
     * [Software](#software)
 * [Installation](#installation)
@@ -38,7 +40,7 @@ output directories which will be described later.
 * [Known Issues](#known-issues)
     * [Slice acquisition times](#slice-acquisition-times)
         * [GE](#ge)
-        * [fslroi](#fslroi)
+    * [fslroi](#fslroi)
 
 <!-- vim-markdown-toc -->
 # Requirements
@@ -48,9 +50,11 @@ its variable is `${projdir}` and is automatically set as the working directory.
 It is the *top-level* directory for your project; i.e., all relevant data should
 be accessible from here.
 
+### DICOM files
 When running the initial scripts, you will need to provide one of the following:
 1. A `sourcedata` directory, which contains *BIDS*-compliant subject directories
     and the *DICOM* files in `${target}_dicom.tar.gz` within that directory tree.
+    In this case, you would *not* use the `--tgz` option to `dti_dicom2nifti_bet.sh`.
 
     Here, the `${target}` variable should follow the *BIDS* spec; for example
     (with optional information in square brackets):
@@ -58,15 +62,28 @@ When running the initial scripts, you will need to provide one of the following:
     sub-<studyID>[_ses-<sessionID>][_acq-<acquisition>]_dwi_dicom.tar.gz
     sub-<studyID>[_ses-<sessionID>]_task-rest[_acq-<acquisition>][_run-<runID>]_dicom.tar.gz
     ```
-    In this case, you do not have to use the `--tgz` option to `dti_dicom2nifti_bet.sh`.
+
 2. A `.tar.gz` that you provide as input to the initial script, `dti_dicom2nifti_bet.sh`.
     This `.tar.gz` file *MUST* be either directly in `${projdir}` or you must provide the full path.
     This will be renamed to `${target}_dicom.tar.gz` (see above) and placed under the `sourcedata` directory.
 
+### Basic QC
+To perform the most basic QC check &mdash; checking that image dimensions match &mdash;
+there must be a simple text file for each acquisition.
+
+For example, if your DWI acquisition matrix is `96 x 96`, there are 65 slices,
+and 32 diffusion-weighted volumes + 1 non-diffusion weighted volume:
+``` bash
+cat ${projdir}/data/sizes/dwi_size.txt
+96 96 65 33
+```
+
+If the files do not exist, the initial script will exit with an error.
+If the files do exist, and the dimensions do *not* match, the data will be moved to the `${projdir}/unusable` directory.
+
 ### Parcellations
 Subject-specific parcellations will be used as the sources/targets of the network (at least for DTI tractography).
 The results from *Freesurfer*'s `recon-all` should be in `${projdir}/freesurfer`.
-The subject directories (within `freesurfer`) should at least share the same directory names as those in `sourcedata`.
 
 ## Software
 In addition to good-quality T1-weighted and DWI data, some software requirements are:
@@ -171,54 +188,89 @@ The scripts will perform the following steps. *Freesurfer*'s `recon-all` should 
     <li>Checks the image dimensions against the study's dimensions (specified by the user in a text file) via <code>qc_basic.sh</code>. If this fails, the subject's data are moved to a directory called <code>unusable</code>.</li>
     <li>If there are multiple <em>b0</em> volumes, they will be averaged when creating <code>nodif.nii.gz</code></li>
     <li>Skullstrips the data using <a href="https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/BET/UserGuide"><code>bet</code></a>.</li>
-    <li>Checks the quality by running <code>dti_qc_bet.sh</code> and viewing the resultant images.
+    <li>Runs <code>dti_qc_bet.sh</code> to generate screenshots of the skullstripped data.
         See <a href="https://imgur.com/a/rkxkgV4">example images</a>.</li>
-    <li>Re-run if the skullstrip wasn't acceptable; change the <code>bet</code> threshold by passing
-        the <code>--rerun</code> and <code>-t|--threshold</code> options to <em>Step 1</em>.</li>
     </ol>
 
     ``` bash
-    dti_dicom2nifti_bet.sh -s sub01 --acq multishell --tgz sub01_dicom.tar.gz
+    dti_dicom2nifti_bet.sh -s s001 --acq multishell --tgz s001_dicom.tar.gz
     # Creates the files:
-    ${projdir}/rawdir/sub-sub01/dwi/sub-sub01_acq-multishell_dwi.{nii.gz,bval,bvec,json}
+    ${projdir}/rawdir/sub-s001/dwi/sub-s001_acq-multishell_dwi.{nii.gz,bval,bvec,json}
     # Creates the directory:
-    ${projdir}/tractography/sub-sub01/dwi/qc_bet/
+    ${projdir}/tractography/sub-s001/dwi/qc_bet/
     ```
-2. Run `eddy` via `dti_eddy.sh`.
+2. (manual) Check the quality of `bet` by viewing the images in `${resdir}/qc/bet`.
+    <ol type="a">
+    <li>Re-run <em>Step 1</em> if the skullstrip wasn't acceptable.
+        Do this by passing the <code>--rerun</code> and <code>-t|--threshold</code> options
+        to <code>dti_dicom2nifti_bet.sh</code>.</li>
+    </ol>
+
+    For example,
+    ``` bash
+    eog tractography/sub-s001/dwi/qc/bet/*.png
+    dti_dicom2nifti_bet.sh -s s001 --acq multishell --rerun -t 0.4
+    ```
+
+3. Run `eddy` via `dti_eddy.sh`.
     <ol type="a">
     <li>Also calculates <code>eddy</code>-specific QC metrics via <code>eddy_quad</code> from
         <a href="https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/eddyqc"><code>eddyqc</code></a>.</li>
     </ol>
 
     ``` bash
-    dti_eddy.sh -s sub01 -acq multishell
+    dti_eddy.sh -s s001 -acq multishell
     ```
-3. If you *do not* have a GPU but *do* have a *SLURM* scheduler, run *BEDPOSTX* via `dti_bedpostx_run.sh`.
+4. If you *do not* have a GPU but *do* have a *SLURM* scheduler, run *BEDPOSTX* via `dti_bedpostx_run.sh`.
     <ol type="a">
     <li>You will then also need to run <code>dti_bedpostx_postproc.sh</code>.</li>
     <li>If you <em>do</em> have a GPU, you can run <code>bedpostx_gpu</code> on <code>${projdir}/${resdir}</code>.</li>
     <li>If you have a system with an <em>SGE</em> scheduler, you can run <code>bedpostx</code> normally.</li>
     </ol>
-4. Run the setup script `dti_probrackx2_setup.sh`.
-5. Check the quality of the registration/parcellation by running `dti_qc_probtrackx2.sh`.
+5. Run the setup script `dti_probrackx2_setup.sh`.
+6. Check the quality of the registration/parcellation by running `dti_qc_probtrackx2.sh`.
 
 # Variables
-These variables are created in `dti_vars.sh` and are primarily used (by `dti_dicom2nifti_bet.sh`)
-to create the appropriate directories and files with the correct names.
+The following variables are exported by `setup_vars.sh` and are used to create the
+appropriate directory and filename targets that conform to the *BIDS* standard
+See the code block following the list for examples.
 
-* `projdir` The project's top-level directory. All preprocessing scripts should be called from this directory.
-* `target` The character string for the subject (plus the session and acquisition, if applicable).
-    * For example, this might be `sub-SP7102_ses-01_acq-iso_dwi` in the case of > 1 session and > 1 DWI acquisition.
-    * Directories and filenames will both be generated using this variable.
-* `rawdir` The directory (which lives under `${projdir}/rawdata` that will hold the "raw" data.
-    Here, "raw" simply indicates that no preprocessing has been applied to them.
-    * In the DWI case, this will contain `nii.gz` volume(s), `bvecs`, `bvals`, and a *JSON* file
-        (also called a "BIDS sidecar", created by `dcm2niix`).
-* `srcdir` The directory (which lives under `${projdir}/sourcedata`) that holds the "source" data.
-    Here, "source" indicates data that came directly from the scanner:
-    DICOM files, PAR/REC files (for Philips data), Siemens mosaic, etc.
-* `resdir` The directory where results will be stored.
-    For DWI data, this will be `${projdir}/tractography` (containing the results from both `bedpostx` and `probtrackx2`).
+<dl>
+    <dt>projdir</dt>
+    <dd>The project's top-level directory. All preprocessing scripts <b>must</b> be called from this directory.</dd>
+    <dt>target</dt>
+    <dd>The character string for the subject (plus the session and acquisition, if applicable).<br/>
+        Directories and filenames will both be generated using this variable.</dd>
+    <dt>srcdir</dt>
+    <dd>The directory that holds the "source" data.
+        Here, "source" indicates data that came directly from the scanner;
+        i.e., DICOM files, PAR/REC files (for Philips data), Siemens mosaic, etc.</dd>
+    <dt>rawdir</dt>
+    <dd>The directory that will hold the "raw" data.
+        Here, "raw" simply indicates that no preprocessing has been applied to them.</dd>
+    <dt>fs_sub_dir</dt>
+    <dd>The name of the directories containing <em>Freesurfer</em> results.
+        Since Freesurfer's <code>SUBJECTS_DIR</code> is "flat" (i.e., all data must be in a single directory),
+        if the study is longitudinal then the <code>_ses-${session}</code> will be in the directory names.</dd>
+    <dt>resdir</dt>
+    <dd>The directory where results will be stored. For DWI data, this will be <code>${projdir}/tractography</code>
+        (containing the results from both <code>bedpostx</code> and <code>probtrackx2</code>).</dd>
+</dl>
+
+For example, in a theoretical test-retest study, the outputs might look like the following.
+The directories live directly under `${projdir}`.
+``` bash
+${target}       sub-s001_ses-retest_acq-highres_T1w
+                sub-s001_ses-retest_acq-multishell_dwi
+                sub-s001_ses-retest_task-rest_bold
+
+${srcdir}       sourcedata/sub-s001/ses-retest/{anat,dwi,func}
+                    `- ${target}_dicom.tar.gz
+${rawdir}       rawdata/sub-s001/ses-retest/dwi
+                    `- ${target}.{bvals,bvecs,json,nii.gz}
+${resdir}       tractography/sub-s001/ses-retest/dwi
+${fs_sub_dir}   freesurfer/sub-s001_ses-retest
+```
 
 # Known Issues
 ## Slice acquisition times
@@ -238,5 +290,5 @@ That thread links to [another thread](https://neurostars.org/t/getting-missing-g
 which references some more *DICOM* tags, and links to a [Github repo](https://github.com/nikadon/cc-dcm2bids-wrapper)
 that may be able to find out this information.
 
-### fslroi
+## fslroi
 In FSL *v6.0.0*, `fslroi` has undesired behavior; for some files, it remapped voxel values so that the `nodif` images were completely wrong. A temporary workaround is to use `fslmaths` to change the image type of `dwi_orig.nii.gz` to *float*. This bug should be fixed in *v6.0.1*.
