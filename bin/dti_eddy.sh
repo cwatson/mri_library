@@ -64,10 +64,10 @@ usage() {
 
 # Argument checking
 #-------------------------------------------------------------------------------
-[[ $# == 0 ]] && usage && exit
+[[ $# -eq 0 ]] && usage && exit
 
 TEMP=$(getopt -o hs: --long help,subject:,long:,acq:,params:,index:,mp:,slspec:,fd-cutoff -- "$@")
-[[ $? -ne 0 ]] && usage && exit
+[[ $? -ne 0 ]] && usage && exit 64
 eval set -- "${TEMP}"
 
 long=0
@@ -91,11 +91,6 @@ while true; do
     shift
 done
 
-if [[ -z ${subj} ]]; then
-    echo "Please provide a subject ID."
-    exit 76
-fi
-
 source $(dirname "${BASH_SOURCE[0]}")/setup_vars.sh
 cd ${projdir}/${resdir}
 
@@ -103,7 +98,7 @@ cd ${projdir}/${resdir}
 # Check if this is being run on Lonestar5
 # i.e., using a Singularity container
 #-------------------------------------------------------------------------------
-if [[ ! -z ${FSL6_CUDA_EXEC} ]]; then
+if [[ -n ${FSL6_CUDA_EXEC} ]]; then
     nvolcommand=(${FSL6_CUDA_EXEC} fslnvols)
     valcommand=(${FSL6_CUDA_EXEC} fslval)
     eddycommand=(${FSL6_CUDA_EXEC} eddy_cuda)
@@ -127,7 +122,7 @@ fi
 if [[ -d eddy ]]; then
     echo "'eddy' has already been run."
     echo "Please remove directory if you wish to re-run."
-    exit 77
+    exit 78
 fi
 mkdir -p eddy dtifit
 if [[ ! -f ${projdir}/${params} ]]; then

@@ -20,6 +20,11 @@ usage() {
 !
 }
 
+if [[ -z ${subj} ]]; then
+    echo "Please provide a subject ID."
+    exit 65
+fi
+
 if [[ -z ${scriptdir} ]]; then
     scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 fi
@@ -30,7 +35,7 @@ source ${scriptdir}/check_dependencies.sh
 #-------------------------------------------------------------------------------
 mod_dir=dwi
 mod=dwi
-if [[ ! -z ${modality} ]]; then
+if [[ -n ${modality} ]]; then
     case "${modality}" in
         [Tt]1|[Tt]1[Ww])            mod_dir=anat; mod=T1w ;;
         [Dd][TtWw][Ii]|diff)        mod_dir=dwi; mod=dwi ;;
@@ -45,6 +50,7 @@ if [[ ${long} -eq 1 ]]; then
     target=${target}_ses-${sess}
     rawdir=${rawdir}/ses-${sess}
 fi
+fs_sub_dir=${target}
 
 # fmri data have a "task" label in the filename
 #---------------------------------------
@@ -52,15 +58,13 @@ if [[ ${mod_dir} == func ]]; then
     target=${target}_task-rest
 fi
 
-if [[ ! -z ${acq} ]]; then
-    target=${target}_acq-${acq}_${mod}
-else
-    target=${target}_${mod}
-fi
+[[ -n ${acq} ]] && target=${target}_acq-${acq}
+
+target=${target}_${mod}
 rawdir=${rawdir}/${mod_dir}
 srcdir=${rawdir/rawdata/sourcedata}
 resdir=${rawdir/rawdata/tractography}
 
 [[ ! -d ${srcdir} ]] && mkdir -p ${srcdir}
 
-export projdir target rawdir srcdir resdir scriptdir
+export projdir target rawdir fs_sub_dir srcdir resdir scriptdir

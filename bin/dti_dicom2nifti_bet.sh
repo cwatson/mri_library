@@ -52,10 +52,10 @@ usage() {
 
 # Argument checking
 #-------------------------------------------------------------------------------
-[[ $# == 0 ]] && usage && exit
+[[ $# -eq 0 ]] && usage && exit
 
 TEMP=$(getopt -o hs:t: --long help,subject:,threshold:,rerun,long:,acq:,tgz: -- "$@")
-[[ $? -ne 0 ]] && usage && exit
+[[ $? -ne 0 ]] && usage && exit 64
 eval set -- "${TEMP}"
 
 thresh=0.5
@@ -92,18 +92,18 @@ if [[ ${rerun} -eq 0 ]]; then
     # Extract first file, determine Manufacturer,
     # then extract entire archive
     #-------------------------------------------------------
-    if [[ ${tgz} != '' ]]; then
+    if [[ -n ${tgz} ]]; then
         if [[ -f ${tgz} ]]; then
             mv ${tgz} ${projdir}/${srcdir}/${target}_dicom.tar.gz
         else
             echo "Input file ${tgz} is invalid."
             echo "Please make sure to use the full path to the file."
-            exit 71
+            exit 73
         fi
     fi
     if [[ ! -f ${target}_dicom.tar.gz ]]; then
         echo "Could not find DICOM 'tar' archive."
-        exit 72
+        exit 74
     fi
     firstfile=$(tar tf ${target}_dicom.tar.gz | grep -v '/$' | head -1)
     tar xf ${target}_dicom.tar.gz ${firstfile} --xform='s#^.+/##x'
@@ -145,7 +145,7 @@ if [[ ${rerun} -eq 0 ]]; then
     ${FSLDIR}/bin/fslmaths lowb -Tmean nodif
     rm lowb*
 
-    # Check image dimensions
+    # Basic QC: check image dimensions
     source ${scriptdir}/qc_basic.sh
 else
     cd ${projdir}/${resdir}

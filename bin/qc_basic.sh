@@ -37,7 +37,7 @@ if [[ -f ${size_file} ]]; then
     sz_study=$(cat ${size_file})
 else
     echo "File ${size_file} does not exist."
-    exit 73
+    exit 75
 fi
 sz_sub=$(check_dims)
 if [[ ${sz_sub} != ${sz_study} ]]; then
@@ -48,5 +48,5 @@ if [[ ${sz_sub} != ${sz_study} ]]; then
     mv sourcedata/sub-${subj} unusable/sourcedata/
     mv rawdata/sub-${subj} unusable/rawdata/
     mv tractography/sub-${subj} unusable/tractography/
-    exit 74
+    exit 76
 fi
