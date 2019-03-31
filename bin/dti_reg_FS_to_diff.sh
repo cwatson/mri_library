@@ -96,38 +96,40 @@ ${FREESURFER_HOME}/bin/mri_convert ${fs_mri_dir}/${atlas_base}.mgz ${regdir}/fs/
 ${FREESURFER_HOME}/bin/mri_convert ${fs_mri_dir}/brain.mgz ${regdir}/fs/brain.nii.gz
 ${FREESURFER_HOME}/bin/flip4fsl ${regdir}/fs/brain.nii.gz ${regdir}/anat/brain.nii.gz
 
-# Calc. reg. from FS conformed to flipped anatomical (FSL) space
+# Calc. registration from FS conformed <--> flipped anatomical (FSL) space
 ${FREESURFER_HOME}/bin/tkregister2 --mov ${regdir}/fs/brain.nii.gz \
-    --targ ${regdir}/anat/brain.nii.gz \
-    --regheader --noedit \
+    --targ ${regdir}/anat/brain.nii.gz --regheader --noedit \
     --fslregout ${xfmdir}/fs2anat.mat --reg ${xfmdir}/anat2fs.dat
 ${FSLDIR}/bin/convert_xfm -omat ${xfmdir}/anat2fs.mat -inverse ${xfmdir}/fs2anat.mat
 
-# Register diffusion to FS conformed space
+# Register diffusion <--> FS conformed space
 ${FREESURFER_HOME}/bin/bbregister --s ${fs_sub_dir} --init-fsl --dti --mov ${resdir}/data.nii.gz \
     --reg ${xfmdir}/fs2diff.bbr.dat --fslmat ${xfmdir}/diff2fs.bbr.mat
 ${FSLDIR}/bin/convert_xfm -omat ${xfmdir}/fs2diff.bbr.mat -inverse ${xfmdir}/diff2fs.bbr.mat
 
-# Calc. flipped anatomical to low-b
+# Calc. registration from flipped anatomical <--> diffusion space
 ${FSLDIR}/bin/convert_xfm -omat ${xfmdir}/anat2diff.bbr.mat \
     -concat ${xfmdir}/fs2diff.bbr.mat ${xfmdir}/anat2fs.mat
 ${FSLDIR}/bin/convert_xfm -omat ${xfmdir}/diff2anat.bbr.mat -inverse ${xfmdir}/anat2diff.bbr.mat
 
-# Apply transform to the parcellation (e.g., "aparc+aseg") volume
-# FS conformed --> diffusion space
 #-------------------------------------------------------------------------------
-# Change orientation to make FSL happy
+# Apply transform to the parcellation (e.g., "aparc+aseg") volume and do QC
+#-------------------------------------------------------------------------------
+# Flipped anatomical --> diffusion space
 flip4fsl ${regdir}/fs/${atlas_base}.nii.gz ${regdir}/anat/${atlas_base}.nii.gz
 flirt -in ${regdir}/anat/${atlas_base}.nii.gz -ref ${resdir}/nodif.nii.gz \
     -out ${regdir}/diff/${atlas_base}.bbr.nii.gz \
     -applyxfm -init ${xfmdir}/anat2diff.bbr.mat \
     -interp nearestneighbour
 
-# Map diffusion brain mask to FS conformed space
+# Map diffusion brain mask --> FS conformed space
 flirt -in ${resdir}/nodif_brain_mask.nii.gz -ref ${regdir}/fs/brain.nii.gz \
     -out ${regdir}/fs/nodif_brain_mask.bbr.nii.gz \
     -applyxfm -init ${xfmdir}/diff2fs.bbr.mat \
     -interp nearestneighbour
+
+# Generate some QC images
+source ${scriptdir}/dti_qc_reg.sh
 
 # Extract the individual cortical and subcortical labels
 #-------------------------------------------------------------------------------
@@ -137,8 +139,7 @@ mkdir -p ${seed_dir} && cd ${seed_dir}
 while read line; do
     roiID=$(echo ${line} | awk '{print $1}' -)
     roiNAME=$(echo ${line} | awk '{print $2}' -)
-    fslmaths \
-        ${regdir}/diff/${atlas_base}.bbr \
+    fslmaths ${regdir}/diff/${atlas_base}.bbr \
         -thr ${roiID} -uthr ${roiID} \
         -bin ${roiNAME}
     fslstats ${roiNAME} -V | awk '{print $1}' >> sizes.txt
