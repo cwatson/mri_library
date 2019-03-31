@@ -45,7 +45,7 @@ fi
 
 projdir=${PWD}
 target=sub-${subj}
-rawdir=rawdata/${target}/
+rawdir=rawdata/${target}
 if [[ ${long} -eq 1 ]]; then
     target=${target}_ses-${sess}
     rawdir=${rawdir}/ses-${sess}
