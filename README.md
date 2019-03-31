@@ -227,7 +227,7 @@ The scripts will perform the following steps. *Freesurfer*'s `recon-all` should 
     <li>If you <em>do</em> have a GPU, you can run <code>bedpostx_gpu</code> on <code>${projdir}/${resdir}</code>.</li>
     <li>If you have a system with an <em>SGE</em> scheduler, you can run <code>bedpostx</code> normally.</li>
     </ol>
-5. Run the setup script `dti_probrackx2_setup.sh`.
+5. Run the setup script `dti_reg_FS_to_diff.sh` to register the Freesurfer parcellation to diffusion space.
 6. Check the quality of the registration/parcellation by running `dti_qc_probtrackx2.sh`.
 
 # Variables
