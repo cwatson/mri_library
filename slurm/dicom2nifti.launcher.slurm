@@ -2,7 +2,7 @@
 #
 #SBATCH -J dicom2nifti
 #SBATCH -N 1            # Total number of nodes (48 cores/node; 2 threads/core)
-#SBATCH -n 65           # Total number of tasks
+#SBATCH -n 48           # Total number of tasks
 #SBATCH -p skx-normal   # Queue name
 #SBATCH -t 00:15:00     # Run time (hh:mm:ss)
 #SBATCH --mail-type=end
