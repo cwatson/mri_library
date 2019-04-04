@@ -80,7 +80,7 @@ SUBJECTS_DIR=${projdir}/freesurfer
 fs_mri_dir=${SUBJECTS_DIR}/${fs_sub_dir}/mri
 regdir=${projdir}/${resdir}/registrations
 xfmdir=${regdir}/xfms
-seed_dir=${resdir}.probtrackX2/seeds/${atlas}
+seed_dir=${projdir}/${resdir}.probtrackX2/seeds/${atlas}
 
 mkdir -p ${regdir}/{anat,fs,diff,xfms}
 
