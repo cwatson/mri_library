@@ -27,7 +27,7 @@ midline=$(( $(${FSLDIR}/bin/fslval ${resdir}/nodif dim2) / 2 ))
 #-------------------------------------------------------------------------------
 fv_cmd=${qcdir}/cmd.txt
 echo "-v ${resdir}/dtifit/dtifit_FA.nii.gz" >> ${fv_cmd}
-echo "-zoom 1.25 -viewsize 1280 1024" >> ${fv_cmd}
+echo "-zoom 1.25 -viewsize 640 480" >> ${fv_cmd}
 
 # Screenshots of just the FA volume
 for (( slice=${startslice}; slice <= ${endslice}; slice +=2 )); do
