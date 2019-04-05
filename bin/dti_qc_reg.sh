@@ -41,7 +41,7 @@ for (( slice=${startslice}; slice <= ${endslice}; slice +=2 )); do
     echo "-viewport axial -slice 0 ${midline} ${slice} -ss ${fname}" >> ${fv_cmd}
 done
 echo "-quit" >> ${fv_cmd}
-xvfb-run -s "-screen 0 1280x1024x24" ${FREESURFER_HOME}/bin/freeview -cmd ${fv_cmd}
+xvfb-run -s "-screen ${servernum} 1280x1024x24" ${FREESURFER_HOME}/bin/freeview -cmd ${fv_cmd}
 
 # Crop images (make them narrower)
 cd ${qcdir}

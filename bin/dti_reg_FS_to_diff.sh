@@ -11,7 +11,7 @@ usage() {
  Freesurfer labels are registered to diffusion space using ${myblue}bbregister$(tput sgr0).
 
  ${myyellow}USAGE:${mygreen}
-    $(basename $0) -s|--subject SUBJECT -a|--atlas ATLAS
+    $(basename $0) -s|--subject SUBJECT -a|--atlas ATLAS -n SERVERNUM
         [--long SESSION] [--acq LABEL]
 
  ${myyellow}OPTIONS:
@@ -25,6 +25,9 @@ usage() {
     ${mymagenta}-a, --atlas [ATLAS]$(tput sgr0)
         The atlas name (either ${myblue}dk.scgm$(tput sgr0), ${myblue}dkt.scgm$(tput sgr0), or ${myblue}destrieux.scgm$(tput sgr0))
         Default: ${myblue}dk.scgm$(tput sgr0)
+
+    ${mymagenta}-n [SERVERNUM]$(tput sgr0)
+        The server number for the ${myblue}Xvfb$(tput sgr0) process. Must be an integer. Default: 0
 
     ${mymagenta}--long [SESSION]$(tput sgr0)
         If it's a longitudinal study, specify the session label.
@@ -44,7 +47,7 @@ usage() {
 #-------------------------------------------------------------------------------
 [[ $# == 0 ]] && usage && exit
 
-TEMP=$(getopt -o hs:a: --long help,subject:,atlas:,long:,acq: -- "$@")
+TEMP=$(getopt -o hs:a:n: --long help,subject:,atlas:,long:,acq: -- "$@")
 [[ $? -ne 0 ]] && usage && exit 64
 eval set -- "${TEMP}"
 
@@ -52,17 +55,21 @@ atlas=dk.scgm
 long=0
 sess=''
 acq=''
+servernum=0
 while true; do
     case "$1" in
         -h|--help)      usage && exit ;;
         -s|--subject)   subj="$2"; shift ;;
         -a|--atlas)     atlas=$2; shift ;;
+        -n)             servernum=$2; shift ;;
         --long)         long=1; sess="$2"; shift ;;
         --acq)          acq="$2"; shift ;;
         * )             break ;;
     esac
     shift
 done
+
+[[ ${servernum} -gt 99 ]] && servernum=99
 
 atlarray=(dk.scgm dkt.scgm destrieux.scgm)
 [[ ! "${atlarray[@]}" =~ "${atlas}" ]] && echo -e "\nAtlas ${atlas} is invalid.\n" && exit 79

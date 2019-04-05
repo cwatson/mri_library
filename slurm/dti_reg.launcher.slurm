@@ -60,9 +60,11 @@ while true; do
 done
 
 scriptdir=$(dirname $(type -p dti_reg_FS_to_diff.sh))
+ct=0
 for subj in "$@"; do
     sub=${subj##*sub-}
-    echo "${scriptdir}/dti_reg_FS_to_diff.sh -a ${atlas} -s ${sub} --long ${sess} --acq ${acq}" >> ${LAUNCHER_JOB_FILE}
+    echo "${scriptdir}/dti_reg_FS_to_diff.sh -a ${atlas} -s ${sub} -n ${ct} --long ${sess} --acq ${acq}" >> ${LAUNCHER_JOB_FILE}
+    let "ct += 1"
 done
 
 #----------------

@@ -32,6 +32,7 @@ output directories which will be described later.
     * [dcm2niix](#dcm2niix)
     * [jo](#jo)
     * [jq](#jq)
+    * [Xvfb](#xvfb)
     * [FSL](#fsl)
     * [Freesurfer](#freesurfer)
 * [Processing Steps](#processing-steps)
@@ -41,6 +42,7 @@ output directories which will be described later.
     * [Slice acquisition times](#slice-acquisition-times)
         * [GE](#ge)
     * [fslroi](#fslroi)
+    * [FS to DTI registration script](#fs-to-dti-registration-script)
 
 <!-- vim-markdown-toc -->
 # Requirements
@@ -97,6 +99,7 @@ In addition to good-quality T1-weighted and DWI data, some software requirements
 * [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki) version >= *6.0.0*
 * The [ImageMagick suite](https://www.imagemagick.org/script/index.php)
     * Available in the repositories for *Red Hat*-based systems (*RHEL*, *CentOS*, *Scientific Linux*)
+* `Xvfb`, the X Virtual Frame Buffer
 * [`eddyqc`](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/eddyqc) (bundled with *FSL* since *v6.0.0*)
 * [Freesurfer](https://surfer.nmr.mgh.harvard.edu/) version >= *5.3.0*
     * Required for parcellation, the results of which will be used in the tractography step
@@ -121,6 +124,7 @@ echo "export PATH=PATH:${PWD}/mri_library/bin" >> ~/.bash_profile
 ```
 
 If you are on a cluster or other system that uses, e.g., `.bashrc` instead, you may have to add the path manually.
+
 ## dcmtk
 For *CentOS 7*, at least, this is available in the `nux-dextop` repository. If you don't already have this repo, run the following as `root`:
 ``` bash
@@ -164,6 +168,9 @@ If you are running `CentOS 6`, you will have to install the `autoconf268` packag
 This should be in repositories for all major Linux OS's.
 For both *CentOS 6* and *CentOS 7*, it is in the `epel` repository,
 with versions `v1.3.2` and `v1.5.1`, respectively.
+
+## Xvfb
+There should be a package readily available on most systems. On `CentOS`, it is called `xorg-x11-server-Xvfb`.
 
 ## FSL
 To install the latest version of *FSL* (which is *v6.0.0* as of October 2018), you simply run their installer.
@@ -292,3 +299,9 @@ that may be able to find out this information.
 
 ## fslroi
 In FSL *v6.0.0*, `fslroi` has undesired behavior; for some files, it remapped voxel values so that the `nodif` images were completely wrong. A temporary workaround is to use `fslmaths` to change the image type of `dwi_orig.nii.gz` to *float*. This bug should be fixed in *v6.0.1*.
+
+## FS to DTI registration script
+The QC script for Freesurfer to diffusion space relies on `xvfb-run`.
+The argument `-n` allows you to specify a specific *server number*, but sometimes this still results in errors.
+The SLURM script (`dti_reg.launcher.slurm`) will automatically increment this from 0 for each subject,
+but if you have more than 100 subjects processed at once, there might be an error.

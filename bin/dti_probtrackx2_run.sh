@@ -51,7 +51,7 @@ usage() {
         Run with the ${myblue}--pd$(tput sgr0) option
 
  ${myyellow}EXAMPLES:${mygreen}
-    $(basename $0) -a dk.scgm -s SP7104_time1 -P 1000 --parallel
+    $(basename $0) -a dk.scgm -s SP7104 --long 01 --acq iso -P 1000 --parallel
     $(basename $0) -a dkt.scgm -s cd001
 
 !
@@ -62,9 +62,10 @@ usage() {
 [[ $# == 0 ]] && usage && exit
 
 TEMP=$(getopt -o hs:a:P: --long help,subject:,atlas:,long:,acq:,parallel,network,pd -- "$@")
-[[ $? -ne 0 ]] && usage && exit 1
+[[ $? -ne 0 ]] && usage && exit 64
 eval set -- "${TEMP}"
 
+atlas=dk.scgm
 long=0
 sess=''
 acq=''
@@ -91,7 +92,7 @@ done
 atlarray=(dk.scgm dkt.scgm destrieux.scgm)
 [[ ! "${atlarray[@]}" =~ "${atlas}" ]] && echo -e "\nAtlas ${atlas} is invalid.\n" && exit 12
 
-source $(dirname "${BASH_SOURCE[0]}")/dti_vars.sh
+source $(dirname "${BASH_SOURCE[0]}")/setup_vars.sh
 bpx_dir=${projdir}/${resdir}.bedpostX
 seed_dir=${projdir}/${resdir}.probtrackX2/seeds/${atlas}
 seed_file=${seed_dir}/seeds_sorted.txt
