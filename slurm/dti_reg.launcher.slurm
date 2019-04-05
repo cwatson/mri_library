@@ -40,7 +40,7 @@ export LAUNCHER_JOB_FILE=${WORK}/stress_study/logs/stampede2/dti_reg.paramlist
 # Argument checking
 #-------------------------------------------------------------------------------
 TEMP=$(getopt -o ha:n --long help,atlas:,long:,acq:,dry-run -- "$@")
-[[ $? -ne 0 ]] && usage && exit
+[[ $? -ne 0 ]] && usage && exit 64
 eval set -- "${TEMP}"
 
 long=0

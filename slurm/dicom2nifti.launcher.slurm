@@ -38,7 +38,7 @@ export LAUNCHER_JOB_FILE=${WORK}/stress_study/logs/stampede2/dicom2nifti.paramli
 # Argument checking
 #-------------------------------------------------------------------------------
 TEMP=$(getopt -o ht:n --long help,threshold:,long:,acq:,tgz:,dry-run -- "$@")
-[[ $? -ne 0 ]] && usage && exit
+[[ $? -ne 0 ]] && usage && exit 64
 eval set -- "${TEMP}"
 
 thresh=0.5
