@@ -19,7 +19,7 @@ module load cuda/9.0
 # Argument checking
 #-------------------------------------------------------------------------------
 TEMP=$(getopt -o hs: --long help,subject:,long:,acq: -- "$@")
-[[ $? -ne 0 ]] && usage && exit
+[[ $? -ne 0 ]] && usage && exit 64
 eval set -- "${TEMP}"
 
 long=0

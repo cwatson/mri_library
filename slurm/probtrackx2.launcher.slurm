@@ -5,7 +5,7 @@
 #SBATCH -n 48               # Total number of tasks
 #SBATCH -p skx-normal       # Queue name
 #SBATCH -o logs/ptx_run_%j
-#SBATCH -t 04:00:00         # Run time (hh:mm:ss)
+#SBATCH -t 01:30:00         # Run time (hh:mm:ss)
 #SBATCH --mail-type=end
 #SBATCH --mail-user=Christopher.G.Watson@uth.tmc.edu
 #------------------------------------------------------
