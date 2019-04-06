@@ -235,7 +235,15 @@ The scripts will perform the following steps. *Freesurfer*'s `recon-all` should 
     <li>If you have a system with an <em>SGE</em> scheduler, you can run <code>bedpostx</code> normally.</li>
     </ol>
 5. Run the setup script `dti_reg_FS_to_diff.sh` to register the Freesurfer parcellation to diffusion space.
-6. Check the quality of the registration/parcellation by running `dti_qc_probtrackx2.sh`.
+6. Check the quality of the registration/parcellation by viewing the images produced from *Step 5*.
+See <a href="https://imgur.com/bAZorVZ">an example image</a>.
+7. Run the tractography via `dti_probtrackx2_run.sh`.
+You can choose to use the GPU version, or you can run it in parallel (which requires `GNU parallel`.
+8. Create connectivity matrices in which the entries are the estimated streamline counts between all region pairs,
+using the `R` script `fsl_fdt_matrix.R`. This creates a file called `fdt_network_matrix`
+(assuming you haven't already run `probtrackx2` in *network* mode).
+9. Create connectivity matrices in which the entries are the mean of some microstructural measure (e.g., *FA*) along
+the top `N`% of streamlines. The default is to use the top 10%.
 
 # Variables
 The following variables are exported by `setup_vars.sh` and are used to create the

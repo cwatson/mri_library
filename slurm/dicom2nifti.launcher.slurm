@@ -62,13 +62,20 @@ while true; do
 done
 
 scriptdir=$(dirname $(type -p dti_dicom2nifti_bet.sh))
+
+args=("${scriptdir}/dti_dicom2nifti_bet.sh" -t "${thresh}")
+if [[ ${long} -eq 1 ]]; then
+    args+=(--long "${sess}")
+fi
+if [[ -n ${acq} ]]; then
+    args+=(--acq "${acq}")
+fi
+if [[ -n ${tgz} ]]; then
+    args+=(--tgz "${tgz}")
+fi
 for subj in "$@"; do
     sub=${subj##*sub-}
-    if [[ -z ${tgz} ]]; then
-        echo "${scriptdir}/dti_dicom2nifti_bet.sh -s ${sub} -t ${thresh} --long ${sess} --acq ${acq}" >> ${LAUNCHER_JOB_FILE}
-    else
-        echo "${scriptdir}/dti_dicom2nifti_bet.sh -s ${sub} -t ${thresh} --long ${sess} --acq ${acq} --tgz ${tgz}" >> ${LAUNCHER_JOB_FILE}
-    fi
+    echo "${args[@]} -s ${sub}" >> ${LAUNCHER_JOB_FILE}
 done
 
 #----------------

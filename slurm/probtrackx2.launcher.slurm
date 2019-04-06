@@ -15,7 +15,7 @@ usage() {
  echo
  echo  'USAGE:'
  echo  "   $(basename $0) -a|--atlas ATLAS -s|--subject SUBJECT"
- echo  "       [--long SESSION] [--acq LABEL] [-P NUM_SAMPLES] [--pd]"
+ echo  "       [--long SESSION] [-P NUM_SAMPLES] [--pd]"
  echo  "       [-n|--dry-run]"
  echo
  echo  'EXAMPLE:'
@@ -24,7 +24,7 @@ usage() {
 
 # Argument checking
 #-------------------------------------------------------------------------------
-TEMP=$(getopt -o ha:s:P:n --long help,atlas:,subject:,long:,acq:,pd,dry-run -- "$@")
+TEMP=$(getopt -o ha:s:P:n --long help,atlas:,subject:,long:,pd,dry-run -- "$@")
 [[ $? -ne 0 ]] && usage && exit 64
 eval set -- "${TEMP}"
 
@@ -39,7 +39,6 @@ while true; do
         -a|--atlas)     atlas="$2"; shift ;;
         -s|--subject)   subj="$2"; shift ;;
         --long)         long=1; sess="$2"; shift ;;
-        --acq)          acq="$2"; shift ;;
         -P)             nSamples="$2"; shift ;;
         --pd)           do_pd=1 ;;
         -n|--dry-run)   dryrun=1 ;;
