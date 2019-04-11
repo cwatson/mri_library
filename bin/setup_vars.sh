@@ -63,8 +63,9 @@ fi
 target=${target}_${mod}
 rawdir=${rawdir}/${mod_dir}
 srcdir=${rawdir/rawdata/sourcedata}
+#TODO this is only valid if "${mod_dir} == 'dwi'"
 resdir=${rawdir/rawdata/tractography}
 
 [[ ! -d ${srcdir} ]] && mkdir -p ${srcdir}
 
-export projdir target rawdir fs_sub_dir srcdir resdir scriptdir
+export mod_dir mod projdir target rawdir fs_sub_dir srcdir resdir scriptdir
