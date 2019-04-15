@@ -92,7 +92,7 @@ seed_dir=${projdir}/${resdir}.probtrackX2/seeds/${atlas}
 mkdir -p ${regdir}/{anat,fs,diff,xfms}
 
 # If the parc + seg volume doesn't exist, create it
-if [[ ! -e "${fs_mri_dir}/${atlas_base}.mgz" ]]; then
+if [[ ! -f "${fs_mri_dir}/${atlas_base}.mgz" ]]; then
     ${FREESURFER_HOME}/bin/mri_aparc2aseg --s ${fs_sub_dir} --annot ${atlas_base%+aseg}
 fi
 ${FREESURFER_HOME}/bin/mri_convert ${fs_mri_dir}/${atlas_base}.mgz ${regdir}/fs/${atlas_base}.nii.gz
@@ -104,14 +104,18 @@ ${FREESURFER_HOME}/bin/mri_convert ${fs_mri_dir}/brain.mgz ${regdir}/fs/brain.ni
 ${FREESURFER_HOME}/bin/flip4fsl ${regdir}/fs/brain.nii.gz ${regdir}/anat/brain.nii.gz
 
 # Calc. registration from FS conformed <--> flipped anatomical (FSL) space
-${FREESURFER_HOME}/bin/tkregister2 --mov ${regdir}/fs/brain.nii.gz \
-    --targ ${regdir}/anat/brain.nii.gz --regheader --noedit \
-    --fslregout ${xfmdir}/fs2anat.mat --reg ${xfmdir}/anat2fs.dat
+if [[ ! -f "${xfmdir}/fs2anat.mat" ]]; then
+    ${FREESURFER_HOME}/bin/tkregister2 --mov ${regdir}/fs/brain.nii.gz \
+        --targ ${regdir}/anat/brain.nii.gz --regheader --noedit \
+        --fslregout ${xfmdir}/fs2anat.mat --reg ${xfmdir}/anat2fs.dat
+fi
 ${FSLDIR}/bin/convert_xfm -omat ${xfmdir}/anat2fs.mat -inverse ${xfmdir}/fs2anat.mat
 
 # Register diffusion <--> FS conformed space
-${FREESURFER_HOME}/bin/bbregister --s ${fs_sub_dir} --init-fsl --dti --mov ${resdir}/data.nii.gz \
-    --reg ${xfmdir}/fs2diff.bbr.dat --fslmat ${xfmdir}/diff2fs.bbr.mat
+if [[ ! -f "${xfmdir}/diff2fs.bbr.mat" ]]; then
+    ${FREESURFER_HOME}/bin/bbregister --s ${fs_sub_dir} --init-fsl --dti --mov ${resdir}/data.nii.gz \
+        --reg ${xfmdir}/fs2diff.bbr.dat --fslmat ${xfmdir}/diff2fs.bbr.mat
+fi
 ${FSLDIR}/bin/convert_xfm -omat ${xfmdir}/fs2diff.bbr.mat -inverse ${xfmdir}/diff2fs.bbr.mat
 
 # Calc. registration from flipped anatomical <--> diffusion space
@@ -141,8 +145,12 @@ source ${scriptdir}/dti_qc_reg.sh
 # Extract the individual cortical and subcortical labels
 #-------------------------------------------------------------------------------
 labelfile=${scriptdir}/../atlases/${atlas}.txt
-[[ ! -e ${labelfile} ]] && echo "Label file '${labelfile}' missing." && exit 80
+[[ ! -f ${labelfile} ]] && echo "Label file '${labelfile}' missing." && exit 80
 mkdir -p ${seed_dir} && cd ${seed_dir}
+[[ -f sizes.txt ]] && rm sizes.txt
+[[ -f seeds.txt ]] && rm seeds.txt
+[[ -f seeds_sorted.txt ]] && rm seeds_sorted.txt
+
 while read line; do
     roiID=$(echo ${line} | awk '{print $1}' -)
     roiNAME=$(echo ${line} | awk '{print $2}' -)
