@@ -46,7 +46,11 @@ n_outl_eddy=$(wc -l eddy/dwi_eddy.eddy_outlier_report | awk '{print $1}')
 # Run R script to get movement-related parameters
 #-------------------------------------------------------------------------------
 cd ${projdir}
-Rscript ${scriptdir}/dti_qc_eddy.Rscript -s ${subj} --long ${sess} --fd-cutoff ${fd}
+args=(Rscript "${scriptdir}/dti_qc_eddy.Rscript" -s "${subj}" --fd-cutoff "${fd}")
+if [[ ${long} -eq 1 ]]; then
+    args+=(--long "${sess}")
+fi
+${args[@]}
 cd ${resdir}
 
 # 4. Mean FD

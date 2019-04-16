@@ -1,4 +1,4 @@
-#! /usr/bin/env Rscript
+#! /usr/bin/Rscript --vanilla
 #
 # Write a PDF containing plots of movement paraemters and frame displacement,
 # and write a CSV with the data.
