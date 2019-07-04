@@ -87,7 +87,7 @@ while true; do
         --long)         long=1; sess="$2"; shift ;;
         --acq)          acq="$2"; shift ;;
         --pd)           do_pd=1; shift ;;
-        * )             break ;;
+        *)              break ;;
     esac
     shift
 done
