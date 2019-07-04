@@ -97,11 +97,11 @@ source $(dirname "${BASH_SOURCE[0]}")/setup_vars.sh
 # Figure out where ptx results are
 #---------------------------------------
 if [[ ${do_pd} -eq 1 ]]; then
-    ptxdir=${resdir}.probtrackX2/results_pd/${atlas}
+    ptxdir=${projdir}/${resdir}.probtrackX2/results_pd/${atlas}
 else
-    ptxdir=${resdir}.probtrackX2/results_noPd/${atlas}
+    ptxdir=${projdir}/${resdir}.probtrackX2/results_noPd/${atlas}
 fi
-measure_im=${resdir}/dtifit/dtifit_${measure}
+measure_im=${projdir}/${resdir}/dtifit/dtifit_${measure}
 matfile=${ptxdir}/W_${measure}_${thresh}.txt
 
 cd ${ptxdir}
