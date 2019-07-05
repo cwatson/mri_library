@@ -44,7 +44,7 @@ while true; do
     esac
 done
 
-export LAUNCHER_JOB_FILE=${WORK}/stress_study/logs/stampede2/paramlist_FA_${thresh}.wt
+export LAUNCHER_JOB_FILE=${WORK}/stress_study/logs/stampede2/paramlist_${measure}_${thresh}.wt
 [[ -f ${LAUNCHER_JOB_FILE} ]] && rm ${LAUNCHER_JOB_FILE}
 
 scriptdir=$(dirname $(type -p dti_dicom2nifti_bet.sh))
