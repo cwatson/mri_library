@@ -19,7 +19,7 @@ usage() {
  echo  "       [-n|--dry-run]"
  echo
  echo  'EXAMPLE:'
- echo  "   sbatch $(basename $0) -a dk.scgm -s SP7102 --long 01 --acq iso"
+ echo  "   sbatch $(basename $0) -a dk.scgm -s SP7102 --long 01"
 }
 
 # Argument checking
@@ -30,7 +30,6 @@ eval set -- "${TEMP}"
 
 long=0
 sess=''
-acq=''
 nSamples=5000
 do_pd=0
 while true; do
