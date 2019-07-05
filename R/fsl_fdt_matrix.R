@@ -35,5 +35,5 @@ fsl_fdt_matrix <- function(results.dir, P=5000, seeds.sorted) {
   M2 <- matrix(0, kNumROI, kNumROI)
   M2[, seed.order] <- M
   write.table(M2, col.names=F, row.names=F,
-              file=paste0(results.dir, 'fdt_network_matrix'))
+              file=paste0(results.dir, '/fdt_network_matrix'))
 }
