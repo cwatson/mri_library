@@ -54,22 +54,17 @@ while true; do
 done
 
 scriptdir=$(dirname $(type -p dti_dicom2nifti_bet.sh))
-projdir=${PWD}
 
+args=("${scriptdir}/fdt_network_matrix.sh" -a "${atlas}" -P "${nSamples}")
+if [[ ${long} -eq 1 ]]; then
+    args+=(--long "${sess}")
+fi
+if [[ ${do_pd} -eq 1 ]]; then
+    args+=(--pd)
+fi
 for subj in "$@"; do
     sub=${subj##*sub-}
-    resdir=${projdir}/tractography/sub-${sub}
-    if [[ ${long} -eq 1 ]]; then
-        resdir=${resdir}/ses-${sess}
-    fi
-    resdir=${resdir}/dwi.probtrackX2
-    seed_file=${resdir}/seeds/${atlas}/seeds_sorted.txt
-    if [[ ${do_pd} -eq 1 ]]; then
-        resdir=${resdir}/results_pd/${atlas}
-    else
-        resdir=${resdir}/results_noPd/${atlas}
-    fi
-    echo "R -e 'source("${scriptdir}/../R/fsl_fdt_matrix.R"); fsl_fdt_matrix("${resdir}", P=${nSamples}, "${seed_file}")'" >> ${LAUNCHER_JOB_FILE}
+    echo "${args[@]} -s ${sub}" >> ${LAUNCHER_JOB_FILE}
 done
 
 #----------------
