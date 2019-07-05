@@ -47,7 +47,7 @@ while true; do
         -P)             nSamples="$2" ;;
         --pd)           do_pd=1 ;;
         -n|--dry-run)   dryrun=1 ;;
-        --)             break ;;
+        --)             shift; break ;;
         *)              break ;;
     esac
     shift
