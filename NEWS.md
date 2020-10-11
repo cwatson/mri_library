@@ -1,3 +1,68 @@
+# 2019-07-04
+
+* New *Bash* script `fdt_network_matrix.sh`
+* New *Slurm* script `fdt_network_matrix.launcher.slurm`
+
+# 2019-04-11
+
+* New script `make_unusable.sh` moves specified data to the *unusable* directory
+
+# 2019-04-05
+
+* `probtrackx2.launcher.slurm` replaces `fsl_probtrackx2_run.launcher.slurm`
+    * Add CLI arguments
+* `dti_create_network.sh` replaces `fsl_probtrackx2_mean.sh`
+    * Add CLI arguments
+* `dti_create_network.launcher.slurm` replaces `fsl_probtrackx2_mean.launcher.slurm`
+    * Add CLI arguments
+
+# 2019-04-04
+
+* Add dependency for `Xvfb` (required by `dti_qc_reg.sh`)
+
+# 2019-03-31
+
+* `dti_reg_FS_to_diff.sh` replaces `dti_probtrackx2_setup.sh`
+    * Remove the dependence on *Tracula*; calculate registrations directly in the script
+* Add `dti_qc_reg.sh` to create screenshots for QCing registrations
+* Add `dti_reg.launcher.slurm` for the above script
+
+# 2019-03-28
+
+* `setup_vars.sh` replaces `dti_vars.sh`
+
+# 2019-03-25
+
+* Change QC directories, so that each QC step is under a single directory
+* New *R* scripts, `dti_qc_eddy.Rscript` and `realignment_params.R`, for more DTI QC measures
+    * Called by the new `dti_qc_other.sh` script
+* New argument `--fd-cutoff` for `dti_eddy.sh`
+
+# 2019-03-24
+
+* Add basic QC check of image dimensions
+
+# 2019-03-08
+
+* Initial (very basic) support for multiple modalities
+
+# 2019-02-15
+
+* Update `bedpostx`-related code to work on *Lonestar5*
+
+# 2019-02-12
+
+* Update `eddy`-related code so it works on *Lonestar5* and with a *singularity* container
+
+# 2019-02-09
+
+* Fix some *launcher*-related bugs
+    - There cannot be any "heredoc"s in the script being sent to the compute nodes (from a *launcher* script).
+
+# 2019-02-02
+
+* Add a fix specific to *FSL v6.0.0* in which `fslroi` changed the image type
+
 # 2018-12-08
 
 * Add a few CLI options for `eddy_quad`

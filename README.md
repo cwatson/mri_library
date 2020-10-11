@@ -204,7 +204,7 @@ The scripts will perform the following steps. *Freesurfer*'s `recon-all` should 
     # Creates the files:
     ${projdir}/rawdir/sub-s001/dwi/sub-s001_acq-multishell_dwi.{nii.gz,bval,bvec,json}
     # Creates the directory:
-    ${projdir}/tractography/sub-s001/dwi/qc_bet/
+    ${projdir}/tractography/sub-s001/dwi/qc/bet/
     ```
 2. (manual) Check the quality of `bet` by viewing the images in `${resdir}/qc/bet`.
     <ol type="a">
