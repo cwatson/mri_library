@@ -1,13 +1,19 @@
-# 2019-07-04
+# v0.16.0
+
+2019-07-04
 
 * New *Bash* script `fdt_network_matrix.sh`
 * New *Slurm* script `fdt_network_matrix.launcher.slurm`
 
-# 2019-04-11
+# v0.15.0
+
+2019-04-11
 
 * New script `make_unusable.sh` moves specified data to the *unusable* directory
 
-# 2019-04-05
+# v0.14.0
+
+2019-04-05
 
 * `probtrackx2.launcher.slurm` replaces `fsl_probtrackx2_run.launcher.slurm`
     * Add CLI arguments
@@ -16,60 +22,74 @@
 * `dti_create_network.launcher.slurm` replaces `fsl_probtrackx2_mean.launcher.slurm`
     * Add CLI arguments
 
-# 2019-04-04
+# v0.13.0
 
-* Add dependency for `Xvfb` (required by `dti_qc_reg.sh`)
-
-# 2019-03-31
+2019-03-31 -- 2019-04-04
 
 * `dti_reg_FS_to_diff.sh` replaces `dti_probtrackx2_setup.sh`
     * Remove the dependence on *Tracula*; calculate registrations directly in the script
 * Add `dti_qc_reg.sh` to create screenshots for QCing registrations
+* Add dependency for `Xvfb` (required by `dti_qc_reg.sh`)
 * Add `dti_reg.launcher.slurm` for the above script
 
-# 2019-03-28
+# v0.12.0
+
+2019-03-28
 
 * `setup_vars.sh` replaces `dti_vars.sh`
 
-# 2019-03-25
+# v0.11.0
+
+2019-03-25
 
 * Change QC directories, so that each QC step is under a single directory
 * New *R* scripts, `dti_qc_eddy.Rscript` and `realignment_params.R`, for more DTI QC measures
     * Called by the new `dti_qc_other.sh` script
 * New argument `--fd-cutoff` for `dti_eddy.sh`
 
-# 2019-03-24
+# v0.10.0
+
+2019-03-24
 
 * Add basic QC check of image dimensions
 
-# 2019-03-08
+# v0.9.0
+
+2019-03-08
 
 * Initial (very basic) support for multiple modalities
 
-# 2019-02-15
+# v0.8.0
 
-* Update `bedpostx`-related code to work on *Lonestar5*
-
-# 2019-02-12
+2019-02-12 -- 2019-02-15
 
 * Update `eddy`-related code so it works on *Lonestar5* and with a *singularity* container
+* Update `bedpostx`-related code to work on *Lonestar5*
 
-# 2019-02-09
+# v0.7.2
+
+2019-02-09
 
 * Fix some *launcher*-related bugs
     - There cannot be any "heredoc"s in the script being sent to the compute nodes (from a *launcher* script).
 
-# 2019-02-02
+# v0.7.1
+
+2019-02-02
 
 * Add a fix specific to *FSL v6.0.0* in which `fslroi` changed the image type
 
-# 2018-12-08
+# v0.7.0
+
+2018-12-08
 
 * Add a few CLI options for `eddy_quad`
 * Add an error check for the `${target}_dicom.tar.gz` file
 * Fix bug in `dti_dicom2nifti` in which the `preproc.json` file was incorrectly written to the `qc_bet` directory
 
-# 2018-11-12
+# v0.6.0
+
+2018-11-12
 
 ## New files
 * Moved the color variables to `globals.sh`; will be sourced by scripts for better usage messages
@@ -84,15 +104,17 @@
 ## Minor changes
 * `dti_dicom2nifti_bet.sh` now directly calls `dti_qc_bet.sh`
 
-# 2018-11-06
+# v0.5.0
+
+2018-11-06
+
+* Added functions to log software, system, and parameter information in `json` files, using `jq` and `jo`
 * Use `cut` to get correct `jq` version info
 * Remove backticks from `usage` functions
 
-# 2018-11-05
+# v0.4.0
 
-* Added functions to log software, system, and parameter information in `json` files, using `jq` and `jo`
-
-# 2018-11-04
+2018-11-04
 
 ## General updates
 * Added a `LICENSE` file; using *Apache version 2.0*
@@ -102,18 +124,23 @@
 * Added `${FSLDIR}/bin` in front of some FSL-based programs
 * Changed the code to get `scriptdir` to work across more systems (e.g., `realpath` isn't available on *CentOS 6*)
 
-# Other
+## Other
 * Added an *R* script, `slice_times.R`, to calculate the slice timing for interleaved acquisitions
     * Assume sequential acqusition for both *Philips* and *GE*
 
-# 2018-10-23
+# v0.3.0
+
+2018-10-23
 
 * `dti_dicom2nifti_bet` now allows the specific input of the *DICOM* `.tar.gz` file, via the option `--tgz`.
     This means it is not required to have the `sourcedata` directory tree already set-up
 * `dti_vars` will create `${srcdir}` if it doesn't exist, to facilitate the above change
 
 
-# 2018-10-22
+# v0.2.0
+
+2018-10-22
+
 File renames and additions
 
 * Removed the leading `fsl_` from the scripts, as it was redundant
@@ -122,7 +149,10 @@ File renames and additions
 * Renamed the first *QC* script to `dti_qc_bet.sh`
 
 
-# 2018-10-21
+# v0.1.0
+
+2018-10-21
+
 Overhaul of the preprocessing script
 
 ## General updates
@@ -141,5 +171,9 @@ Overhaul of the preprocessing script
 * Change from `eddy_openmp` to `eddy_cuda`
     * Add `--mporder`, `--slspec`, `--residuals`, and `--cnr_maps` as arguments
 
-# 2018-10-11
+
+# v0.0.1
+
+2018-10-11
+
 Move all files in `bin/fsl` up, to `bin/`.
