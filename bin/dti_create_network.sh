@@ -115,6 +115,6 @@ for seed in [12]*; do
             echo -n "$(fslstats ${measure_im} -k targmask -M) " >> ${matfile}
         fi
     done
-    cd -
+    cd - 2>&1 >/dev/null
     echo >> ${matfile}
 done
